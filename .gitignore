@@ -10,3 +10,5 @@
 /.idea
 #target folder
 /Blockchain/target
+#properties file
+/Blockchain/src/main/java/config/props.properties
