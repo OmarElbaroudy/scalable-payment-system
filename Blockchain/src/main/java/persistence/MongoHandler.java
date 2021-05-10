@@ -2,15 +2,13 @@ package persistence;
 
 import persistence.models.Block;
 
-import java.io.IOException;
-
 import static com.mongodb.client.model.Filters.eq;
 
 
 public class MongoHandler extends MongoConnectionHandler {
     private final String fieldName = "metaData.blockIndex";
 
-    public MongoHandler() throws IOException {
+    public MongoHandler(){
         super();
     }
 

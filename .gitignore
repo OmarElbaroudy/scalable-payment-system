@@ -10,5 +10,7 @@
 /.idea
 #target folder
 /Blockchain/target
-#properties file
-/Blockchain/src/main/java/config/props.properties
+#tmp folder (rocksDB)
+/Blockchain/src/main/java/tmp
+#enviroment file
+.env

@@ -13,21 +13,16 @@ import persistence.models.UTXO;
 import utilities.MerkelTree;
 import utilities.Sign;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class PersistenceTester {
+public class MongoTester {
     private static MongoHandler handler;
 
     @BeforeAll
     static void init() {
-        try {
-            handler = new MongoHandler();
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-        }
+        handler = new MongoHandler();
     }
 
     @AfterAll

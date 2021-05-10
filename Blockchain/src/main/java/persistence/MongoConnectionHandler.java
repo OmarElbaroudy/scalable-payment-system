@@ -6,13 +6,13 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import persistence.models.Block;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Properties;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
@@ -32,11 +32,7 @@ public class MongoConnectionHandler {
     private final MongoDatabase db;
     private final MongoCollection<Block> blockchain;
 
-
-    /**
-     * @throws IOException happens when cannot load data from properties file
-     */
-    public MongoConnectionHandler() throws IOException {
+    public MongoConnectionHandler(){
         this.mc = MongoClients.create(getMongoClientSettings());
         this.db = mc.getDatabase(nodeId.toString());
         this.blockchain = this.db.getCollection("Block", Block.class);
@@ -45,21 +41,17 @@ public class MongoConnectionHandler {
 
     /**
      * @return mongodb uri connection String
-     * @throws IOException happens when the props file is not found
      */
-    private ConnectionString getConnectionString() throws IOException {
-        try (FileInputStream f = new FileInputStream("/home/baroudy/Projects/Bachelor/payment-system/Blockchain/src/main/java/config/props.properties")) {
-            Properties props = new Properties();
-            props.load(f);
-            return new ConnectionString(props.getProperty("mongodb.uri"));
-        }
+    private ConnectionString getConnectionString(){
+        String path = "/home/baroudy/Projects/Bachelor/payment-system";
+        Dotenv dotenv = Dotenv.configure().directory(path).load();
+        return new ConnectionString(Objects.requireNonNull(dotenv.get("MONGODB_URI")));
     }
 
     /**
      * @return client setting for mapping pojo models to documents
-     * @throws IOException when connection string is invalid
      */
-    private MongoClientSettings getMongoClientSettings() throws IOException {
+    private MongoClientSettings getMongoClientSettings(){
         CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
         CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
         return MongoClientSettings.builder()
