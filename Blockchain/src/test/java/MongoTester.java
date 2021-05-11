@@ -36,10 +36,11 @@ public class MongoTester {
             String msg = "Message for signing";
             byte[] msgHash = Hash.sha3(msg.getBytes());
             ECKeyPair pair = Keys.createEcKeyPair();
+            Sign.SignatureData sign= Sign.signMessage(msgHash, pair);
 
-            UTXO fst = new UTXO(5, "5", Sign.signMessage(msgHash, pair));
-            UTXO snd = new UTXO(5, "5");
-            UTXO thrd = new UTXO(5, "5");
+            UTXO fst = new UTXO(5, "5", sign);
+            UTXO snd = new UTXO(5, "5", sign);
+            UTXO thrd = new UTXO(5, "5", sign);
 
             List<UTXO> input = List.of(fst, snd, thrd);
             Transaction transaction = new Transaction(input, thrd);

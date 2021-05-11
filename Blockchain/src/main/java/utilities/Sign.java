@@ -14,11 +14,12 @@ import org.web3j.crypto.Hash;
 import org.web3j.utils.Assertions;
 import org.web3j.utils.Numeric;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.Arrays;
 
-public class Sign {
+public class Sign implements Serializable {
     public static final X9ECParameters CURVE_PARAMS = CustomNamedCurves.getByName("secp256k1");
     static final ECDomainParameters CURVE;
     static final BigInteger HALF_CURVE_ORDER;
@@ -165,7 +166,7 @@ public class Sign {
         HALF_CURVE_ORDER = CURVE_PARAMS.getN().shiftRight(1);
     }
 
-    public static class SignatureData {
+    public static class SignatureData implements Serializable{
         private byte[] v;
         private byte[] r;
         private byte[] s;

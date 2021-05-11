@@ -3,12 +3,18 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.rocksdb.RocksDBException;
 import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 import persistence.RocksHandler;
+import persistence.models.UTXO;
+import utilities.Sign;
 
 import java.math.BigInteger;
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 public class RocksTester {
@@ -33,11 +39,37 @@ public class RocksTester {
             try{
                 ECKeyPair pair = Keys.createEcKeyPair();
                 BigInteger pubKey = pair.getPublicKey();
-                UUID committeeId = UUID.randomUUID();
-                db.put(pubKey.toString(16),committeeId.toString());
-                String newId = db.get(pubKey.toString(16));
-                assertEquals(committeeId.toString(), newId,
+                String committeeId = UUID.randomUUID().toString();
+                db.assignKeyToCommittee(pubKey.toString(16), committeeId);
+                String newId = db.getCommitteeId(pubKey.toString(16));
+                assertEquals(committeeId, newId,
                         "committeeId obtained doesn't match inserted id");
+            }catch (Exception e){
+                System.err.println(e.getMessage());
+            }
+        }
+
+        @Test
+        void whenGivenKeyAndUTXOSet_thenUTXOSetIsRetrievedCorrectly(){
+            try{
+                String msg = "Message for signing";
+                byte[] msgHash = Hash.sha3(msg.getBytes());
+                ECKeyPair pair = Keys.createEcKeyPair();
+                Sign.SignatureData sign= Sign.signMessage(msgHash, pair);
+
+                UTXO fst = new UTXO(5, "5", sign);
+                UTXO snd = new UTXO(5, "5", sign);
+                UTXO thrd = new UTXO(5, "5", sign);
+
+                HashSet<UTXO> set = new HashSet<>(List.of(fst, snd, thrd));
+                db.addUTXOSet("5", set);
+                HashSet<UTXO> newSet = db.getUTXOSet("5");
+
+                boolean flag = newSet.contains(fst) &&
+                        newSet.contains(snd) &&
+                        newSet.contains(thrd);
+
+                assertTrue(flag, "set is not retrieved successfully");
             }catch (Exception e){
                 System.err.println(e.getMessage());
             }

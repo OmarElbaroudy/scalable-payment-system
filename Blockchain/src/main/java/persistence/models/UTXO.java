@@ -3,9 +3,11 @@ package persistence.models;
 import org.apache.commons.codec.digest.DigestUtils;
 import utilities.Sign;
 
+import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
-public class UTXO {
+public class UTXO implements Serializable {
     private String txId;
     private double amount;
     private String scriptPublicKey; //HEX
@@ -64,5 +66,27 @@ public class UTXO {
 
     public void setScriptSig(Sign.SignatureData scriptSig) {
         this.scriptSig = scriptSig;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UTXO utxo = (UTXO) o;
+        return Objects.equals(txId, utxo.txId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(txId);
+    }
+
+    @Override
+    public String toString() {
+        return "UTXO{" +
+                "txId='" + txId + '\'' +
+                ", amount=" + amount +
+                ", scriptPublicKey='" + scriptPublicKey + '\'' +
+                '}';
     }
 }
