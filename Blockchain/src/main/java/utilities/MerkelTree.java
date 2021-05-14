@@ -53,15 +53,16 @@ public class MerkelTree {
             return tree.get(node);
 
         int mid = (b + e) >> 1;
-        String le = query(node >> 1, b, mid, transaction);
-        String ri = query(node >> 1 | 1, mid + 1, e, transaction);
+        String le = query(node << 1, b, mid, transaction);
+        String ri = query(node << 1 | 1, mid + 1, e, transaction);
         return le + ri;
     }
 
     public boolean SPV(Transaction transaction) {
         String trans = hash(transaction.toString());
         String ret = query(1, 1, N, trans);
-        ret = ret.replaceFirst("%", trans);
+        if (!ret.contains("%")) return false;
+        ret = ret.replaceAll("%", trans);
         return ret.equals(getRoot());
     }
 

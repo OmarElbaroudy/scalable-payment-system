@@ -44,4 +44,13 @@ public class Transaction {
     public void setReturned(UTXO returned) {
         this.returned = returned;
     }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "input=" + input +
+                ", output=" + output +
+                ", returned=" + returned +
+                '}';
+    }
 }

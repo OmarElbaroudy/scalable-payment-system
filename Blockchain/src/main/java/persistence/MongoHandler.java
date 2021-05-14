@@ -4,6 +4,7 @@ import persistence.models.Block;
 
 import static com.mongodb.client.model.Filters.eq;
 
+//TODO index blocks using blockIndex for faster queries
 
 public class MongoHandler extends MongoConnectionHandler {
     private final String fieldName = "metaData.blockIndex";

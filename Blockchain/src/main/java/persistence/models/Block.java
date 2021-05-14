@@ -16,6 +16,10 @@ public class Block {
     }
 
 
+    public int getIdx(){
+        return this.metaData.getBlockIndex();
+    }
+
     public MerkelTree getTransactions() {
         return transactions;
     }

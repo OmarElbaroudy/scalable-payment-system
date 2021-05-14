@@ -87,6 +87,7 @@ public class UTXO implements Serializable {
                 "txId='" + txId + '\'' +
                 ", amount=" + amount +
                 ", scriptPublicKey='" + scriptPublicKey + '\'' +
+                ", scriptSig=" + scriptSig +
                 '}';
     }
 }

@@ -1,11 +1,12 @@
 package persistence.models;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class MetaData {
     private int blockIndex;
     private String previousBlockHash;
-    private Long timestamp;
+    private long timestamp;
     private int nonce;
     private int difficulty;
     private String merkleRootHash;
@@ -67,5 +68,23 @@ public class MetaData {
 
     public void setMerkleRootHash(String merkleRootHash) {
         this.merkleRootHash = merkleRootHash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MetaData metaData = (MetaData) o;
+        return blockIndex == metaData.blockIndex &&
+                timestamp == metaData.timestamp &&
+                nonce == metaData.nonce &&
+                difficulty == metaData.difficulty &&
+                Objects.equals(previousBlockHash, metaData.previousBlockHash) &&
+                Objects.equals(merkleRootHash, metaData.merkleRootHash);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(blockIndex, previousBlockHash, timestamp, nonce, difficulty, merkleRootHash);
     }
 }
