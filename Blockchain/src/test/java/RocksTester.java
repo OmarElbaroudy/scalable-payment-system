@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.rocksdb.RocksDBException;
 import org.web3j.crypto.ECKeyPair;
@@ -35,6 +36,7 @@ public class RocksTester {
         }
 
         @Test
+        @DisplayName("check committeeId column")
         void whenGivenKeyAndValue_thenDataIsInserted(){
             try{
                 ECKeyPair pair = Keys.createEcKeyPair();
@@ -50,6 +52,7 @@ public class RocksTester {
         }
 
         @Test
+        @DisplayName("check UTXOSet column")
         void whenGivenKeyAndUTXOSet_thenUTXOSetIsRetrievedCorrectly(){
             try{
                 String msg = "Message for signing";
