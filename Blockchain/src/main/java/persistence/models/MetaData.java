@@ -17,6 +17,9 @@ public class MetaData {
         this.nonce = nonce;
         this.difficulty = difficulty;
         this.timestamp = new Date().getTime();
+        if(idx == 1){
+            this.timestamp = 0L;
+        }
     }
 
     public MetaData() {
@@ -86,5 +89,17 @@ public class MetaData {
     @Override
     public int hashCode() {
         return Objects.hash(blockIndex, previousBlockHash, timestamp, nonce, difficulty, merkleRootHash);
+    }
+
+    @Override
+    public String toString() {
+        return "MetaData{" +
+                "blockIndex=" + blockIndex +
+                ", previousBlockHash='" + previousBlockHash + '\'' +
+                ", timestamp=" + timestamp +
+                ", nonce=" + nonce +
+                ", difficulty=" + difficulty +
+                ", merkleRootHash='" + merkleRootHash + '\'' +
+                '}';
     }
 }

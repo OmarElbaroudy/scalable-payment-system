@@ -89,4 +89,12 @@ public class MerkelTree {
     public void setTree(List<String> tree) {
         this.tree = tree;
     }
+
+    @Override
+    public String toString() {
+        return "MerkelTree{" +
+                "N=" + N +
+                ", transactions=" + transactions.toString() +
+                '}';
+    }
 }

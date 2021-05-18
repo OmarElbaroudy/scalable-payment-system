@@ -48,9 +48,9 @@ public class Transaction {
     @Override
     public String toString() {
         return "Transaction{" +
-                "input=" + input +
-                ", output=" + output +
-                ", returned=" + returned +
+                "input=" + input.toString() +
+                ", output=" + output.toString() +
+                ", returned=" + (returned == null ? "" : returned.toString()) +
                 '}';
     }
 }

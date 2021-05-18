@@ -17,7 +17,7 @@ public class UTXO implements Serializable {
         this.amount = amount;
         this.scriptPublicKey = scriptPublicKey;
         this.scriptSig = scriptSig;
-        String input = amount + scriptPublicKey + scriptSig.toString();
+        String input = amount + scriptPublicKey;
         txId = UUID.randomUUID() + hash(input);
     }
 
@@ -27,6 +27,13 @@ public class UTXO implements Serializable {
         String input = amount + scriptPublicKey;
         txId = UUID.randomUUID() + hash(input);
         scriptSig = null;
+    }
+
+    public UTXO(UTXO utxo, Sign.SignatureData scriptSig){
+        this.amount = utxo.amount;
+        this.scriptPublicKey = utxo.scriptPublicKey;
+        this.txId = utxo.txId;
+        this.scriptSig = scriptSig;
     }
 
     public UTXO() {
@@ -85,9 +92,7 @@ public class UTXO implements Serializable {
     public String toString() {
         return "UTXO{" +
                 "txId='" + txId + '\'' +
-                ", amount=" + amount +
-                ", scriptPublicKey='" + scriptPublicKey + '\'' +
-                ", scriptSig=" + scriptSig +
-                '}';
+                ", amount=" + amount + '\'' +
+                ", scriptPublicKey='" + scriptPublicKey + '}';
     }
 }

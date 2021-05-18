@@ -3,6 +3,8 @@ package persistence;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.lang3.SerializationUtils;
 import org.rocksdb.*;
+import persistence.models.Block;
+import persistence.models.Transaction;
 import persistence.models.UTXO;
 
 import java.io.Serializable;
@@ -77,33 +79,74 @@ public class RocksHandler {
     }
 
     public boolean addUTXOSet(String pubKey, HashSet<UTXO> set) {
-        try{
+        try {
             byte[] arr = serialize(set);
-            db.put(utxos,pubKey.getBytes(), arr);
-        }catch (RocksDBException e){
+            db.put(utxos, pubKey.getBytes(), arr);
+        } catch (RocksDBException e) {
             return false;
         }
         return true;
     }
 
-    public HashSet<UTXO> getUTXOSet(String pubKey){
+    public HashSet<UTXO> getUTXOSet(String pubKey) {
         HashSet<UTXO> ret;
-        try{
+        try {
             byte[] arr = db.get(utxos, pubKey.getBytes());
             ret = (HashSet<UTXO>) deserialize(arr);
-        }catch (RocksDBException e){
-            return null;
+        } catch (RocksDBException e) {
+            return new HashSet<>();
         }
         return ret;
     }
 
-    public boolean removeUTXOSet(String pubKey){
-        try{
+    public boolean removeUTXOSet(String pubKey) {
+        try {
             db.delete(utxos, pubKey.getBytes());
-        }catch (RocksDBException e){
+        } catch (RocksDBException e) {
             return false;
         }
         return true;
+    }
+
+    //TODO test that getUTXOSet never returns null
+    public void refresh(MongoHandler handler) {
+        int idx = 1;
+        Block b = handler.getBlock(idx);
+
+        while (b != null) {
+            HashMap<String, HashSet<UTXO>> mp = b.getUTXOS();
+            for (Map.Entry<String, HashSet<UTXO>> e : mp.entrySet()) {
+                HashSet<UTXO> st = this.getUTXOSet(e.getKey());
+                st.addAll(e.getValue());
+                this.addUTXOSet(e.getKey(), st);
+            }
+
+            mp = b.getSTXOS();
+            for (Map.Entry<String, HashSet<UTXO>> e : mp.entrySet()) {
+                HashSet<UTXO> st = this.getUTXOSet(e.getKey());
+                st.removeAll(e.getValue());
+                this.addUTXOSet(e.getKey(), st);
+            }
+
+            b = handler.getBlock(++idx);
+        }
+    }
+
+    public void update(Transaction t){
+        //all set can be removed safely
+        for(UTXO utxo : t.getInput()){
+            this.removeUTXOSet(utxo.getScriptPublicKey());
+        }
+
+        HashSet<UTXO> st = getUTXOSet(t.getOutput().getScriptPublicKey());
+        st.add(t.getOutput());
+        addUTXOSet(t.getOutput().getScriptPublicKey(), st);
+
+        if(t.getReturned() != null){
+            st.clear();
+            st.add(t.getReturned());
+            addUTXOSet(t.getReturned().getScriptPublicKey(), st);
+        }
     }
 
     public void closeHandler() {
