@@ -20,7 +20,7 @@ public class RocksHandler {
     private final ColumnFamilyHandle distribution;
 
     public RocksHandler() throws RocksDBException {
-        String path = "/home/baroudy/Projects/Bachelor/payment-system";
+        String path = "C:\\Users\\ahmed\\Documents\\GitHub\\payment-system";
         Dotenv dotenv = Dotenv.configure().directory(path).load();
         String dbPath = dotenv.get("ROCKSDB_PATH") + "signalingServer";
         cfOpts = new ColumnFamilyOptions().optimizeUniversalStyleCompaction();
