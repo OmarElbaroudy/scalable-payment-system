@@ -94,7 +94,7 @@ public class MerkelTree {
     public String toString() {
         return "MerkelTree{" +
                 "N=" + N +
-                ", transactions=" + transactions.toString() +
+                ", transactions=" + (transactions==null? "":transactions.toString()) +
                 '}';
     }
 }
