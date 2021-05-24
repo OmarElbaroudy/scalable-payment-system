@@ -14,6 +14,7 @@ import utilities.MerkelTree;
 import utilities.Sign;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +25,7 @@ public class MongoTester {
 
     @BeforeAll
     static void init() {
-        handler = new MongoHandler();
+        handler = new MongoHandler(UUID.randomUUID().toString());
     }
 
     @AfterAll

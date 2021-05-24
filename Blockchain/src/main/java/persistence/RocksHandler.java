@@ -15,6 +15,7 @@ public class RocksHandler {
         RocksDB.loadLibrary();
     }
 
+    private final String id;
     private final RocksDB db;
     private final DBOptions options;
     private final ColumnFamilyOptions cfOpts;
@@ -22,10 +23,10 @@ public class RocksHandler {
     private final ColumnFamilyHandle committees;
     private final ColumnFamilyHandle utxos;
 
-    public RocksHandler() throws RocksDBException {
+    public RocksHandler(String id) throws RocksDBException {
         String path = "/home/baroudy/Projects/Bachelor/payment-system";
         Dotenv dotenv = Dotenv.configure().directory(path).load();
-        String dbPath = dotenv.get("ROCKSDB_PATH") + UUID.randomUUID();
+        String dbPath = dotenv.get("ROCKSDB_PATH") + (this.id = id);
         cfOpts = new ColumnFamilyOptions().optimizeUniversalStyleCompaction();
 
         List<ColumnFamilyDescriptor> cfDescriptors = Arrays.asList(

@@ -24,7 +24,7 @@ public class RocksTester {
         @BeforeAll
         static void init(){
             try{
-                db = new RocksHandler();
+                db = new RocksHandler(UUID.randomUUID().toString());
             }catch (RocksDBException e){
                 System.err.println(e.getMessage());
             }

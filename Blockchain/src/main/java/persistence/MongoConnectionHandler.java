@@ -27,12 +27,13 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
  * nodes are given a unique UUID which is used to create a unique database
  */
 public class MongoConnectionHandler {
-    private final UUID nodeId = UUID.randomUUID();
+    private final String nodeId;
     private final MongoClient mc;
     private final MongoDatabase db;
     private final MongoCollection<Block> blockchain;
 
-    public MongoConnectionHandler(){
+    public MongoConnectionHandler(String id){
+        this.nodeId = id;
         this.mc = MongoClients.create(getMongoClientSettings());
         this.db = mc.getDatabase(nodeId.toString());
         this.blockchain = this.db.getCollection("Block", Block.class);

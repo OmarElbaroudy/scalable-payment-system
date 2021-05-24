@@ -87,7 +87,7 @@ public class RocksHandler {
         return true;
     }
 
-    public boolean removeCommittee(String committeeId){
+    public boolean removeCommitteeSize(String committeeId){
         try {
             db.delete(distribution, committeeId.getBytes());
         } catch (RocksDBException e) {

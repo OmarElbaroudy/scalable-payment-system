@@ -9,8 +9,8 @@ import static com.mongodb.client.model.Filters.eq;
 public class MongoHandler extends MongoConnectionHandler {
     private final String fieldName = "metaData.blockIndex";
 
-    public MongoHandler(){
-        super();
+    public MongoHandler(String id){
+        super(id);
     }
 
     public void saveBlock(Block block) {

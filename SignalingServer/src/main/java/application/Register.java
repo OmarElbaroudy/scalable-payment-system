@@ -11,6 +11,7 @@ public class Register extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         super.doGet(req, resp);
+        //todo nodeId, queue topic committee, queue topic primary
     }
 
     @Override

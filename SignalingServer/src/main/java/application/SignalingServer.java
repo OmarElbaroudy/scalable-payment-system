@@ -16,6 +16,8 @@ public class SignalingServer {
 
         ServletContextHandler context = new ServletContextHandler();
         context.addServlet(Register.class.getName(), "/register");
+        context.addServlet(Deregister.class.getName(), "/deregister");
+
         server.start();
     }
 
