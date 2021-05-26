@@ -150,6 +150,12 @@ public class RocksHandler {
         }
     }
 
+    public void update(Block b){
+        for(Transaction t : b.getTransactions().getTransactions()){
+            this.update(t);
+        }
+    }
+
     public void closeHandler() {
         for (ColumnFamilyHandle handle : cfHandles) {
             handle.close();

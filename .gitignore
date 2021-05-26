@@ -17,5 +17,5 @@
 #iml file
 /Blockchain/Blockchain.iml
 /SignalingServer/SignalingServer.iml
-
+/SignalingServer/target
 

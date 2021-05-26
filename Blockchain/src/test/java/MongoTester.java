@@ -56,6 +56,7 @@ public class MongoTester {
             transaction = new Transaction(input, thrd);
         } catch (Exception e) {
             System.err.println(e.getMessage());
+            fail();
         }
         return transaction;
     }

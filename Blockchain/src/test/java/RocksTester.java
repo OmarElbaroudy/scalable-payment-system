@@ -14,8 +14,8 @@ import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class RocksTester {
@@ -75,6 +75,7 @@ public class RocksTester {
                 assertTrue(flag, "set is not retrieved successfully");
             }catch (Exception e){
                 System.err.println(e.getMessage());
+                fail();
             }
         }
 }

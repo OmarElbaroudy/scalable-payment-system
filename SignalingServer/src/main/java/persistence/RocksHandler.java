@@ -5,6 +5,7 @@ import org.rocksdb.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class RocksHandler {
@@ -20,7 +21,7 @@ public class RocksHandler {
     private final ColumnFamilyHandle distribution;
 
     public RocksHandler() throws RocksDBException {
-        String path = "C:\\Users\\ahmed\\Documents\\GitHub\\payment-system";
+        String path = "/home/baroudy/Projects/Bachelor/payment-system/.env";
         Dotenv dotenv = Dotenv.configure().directory(path).load();
         String dbPath = dotenv.get("ROCKSDB_PATH") + "signalingServer";
         cfOpts = new ColumnFamilyOptions().optimizeUniversalStyleCompaction();
@@ -68,16 +69,16 @@ public class RocksHandler {
         return true;
     }
 
-    public int getCommitteeSize(String committeeId){
+    public int getCommitteeSize(String committeeId) {
         try {
             String s = new String(db.get(distribution, committeeId.getBytes()));
             return Integer.parseInt(s);
-        } catch (RocksDBException e) {
+        } catch (Exception e) {
             return 0;
         }
     }
 
-    public boolean setCommitteeSize(String committeeId, int committeeSize){
+    public boolean setCommitteeSize(String committeeId, int committeeSize) {
         try {
             String sz = String.valueOf(committeeSize);
             db.put(distribution, committeeId.getBytes(), sz.getBytes());
@@ -87,7 +88,7 @@ public class RocksHandler {
         return true;
     }
 
-    public boolean removeCommitteeSize(String committeeId){
+    public boolean removeCommitteeSize(String committeeId) {
         try {
             db.delete(distribution, committeeId.getBytes());
         } catch (RocksDBException e) {
@@ -96,14 +97,50 @@ public class RocksHandler {
         return true;
     }
 
-    public boolean incCommitteeSize(String committeeId){
+    public boolean incCommitteeSize(String committeeId) {
         int sz = getCommitteeSize(committeeId);
         return setCommitteeSize(committeeId, ++sz);
     }
 
-    public boolean decCommitteeSize(String committeeId){
+    public boolean decCommitteeSize(String committeeId) {
         int sz = getCommitteeSize(committeeId);
         return setCommitteeSize(committeeId, Math.max(0, --sz));
+    }
+
+    public String getRandomNodeInCommittee(String committeeId) {
+        int sz = getCommitteeSize(committeeId), cur = 0;
+        int randomIdx = (int) (Math.random() * sz) + 1;
+
+        RocksIterator rocksIterator = db.newIterator(committees);
+        rocksIterator.seekToFirst();
+
+        while (rocksIterator.isValid()) {
+            if (new String(rocksIterator.value()).equals(committeeId)) {
+                cur++;
+                if (cur == randomIdx) {
+                    return new String(rocksIterator.key());
+                }
+            }
+
+            rocksIterator.next();
+        }
+
+        return "";
+    }
+
+    public int getNumberOfCommittees() {
+        int max = 0;
+
+        RocksIterator rocksIterator = db.newIterator(distribution);
+        rocksIterator.seekToFirst();
+
+        while (rocksIterator.isValid()) {
+            int cur = Integer.parseInt(new String(rocksIterator.key()));
+            max = Math.max(max, cur);
+            rocksIterator.next();
+        }
+
+        return max;
     }
 
     public void closeHandler() {
@@ -112,5 +149,42 @@ public class RocksHandler {
         }
         options.close();
         db.close();
+    }
+
+    public String getParentInSameCommittee(String nodeId) {
+        String committeeId = getCommitteeId(nodeId);
+        HashSet<String> st = new HashSet<>();
+        RocksIterator rocksIterator = db.newIterator(committees);
+        rocksIterator.seekToFirst();
+
+        while (rocksIterator.isValid()) {
+            if (new String(rocksIterator.value()).equals(committeeId)) {
+                st.add(new String(rocksIterator.key()));
+            }
+            rocksIterator.next();
+        }
+
+        st.remove(nodeId);
+        int randomIdx = (int) (Math.random() * st.size());
+        return (String) st.toArray()[randomIdx];
+    }
+
+    public String getParentInDiffCommittee(String nodeId) {
+        HashSet<String> st = new HashSet<>();
+        RocksIterator rocksIterator = db.newIterator(committees);
+        rocksIterator.seekToFirst();
+
+        while (rocksIterator.isValid()) {
+            st.add(new String(rocksIterator.key()));
+            rocksIterator.next();
+        }
+
+        st.remove(nodeId);
+        if(st.isEmpty()){
+            return "nil";
+        }
+
+        int randomIdx = (int) (Math.random() * st.size());
+        return (String) st.toArray()[randomIdx];
     }
 }
