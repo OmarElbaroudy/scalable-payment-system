@@ -3,12 +3,14 @@ package services;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.codec.digest.DigestUtils;
 import persistence.MongoHandler;
+import persistence.RocksHandler;
 import persistence.models.Block;
 import persistence.models.MetaData;
 import persistence.models.Transaction;
 import persistence.models.UTXO;
 import utilities.MerkelTree;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -69,7 +71,7 @@ public class BlockServices {
      * or null if block is invalid. if a block already exists in the database
      * with the same index it will be replaced by the validated block
      */
-    public List<Transaction> validateAndAddBlock(Block block, int difficulty, MongoHandler handler) {
+    public static List<Transaction> validateAndAddBlock(Block block, int difficulty, MongoHandler handler) {
         Block lst = getLastBlock(handler);
         if (lst == null) return null; //Genesis
 
@@ -89,12 +91,12 @@ public class BlockServices {
         return block.getTransactions().getTransactions();
     }
 
-    public boolean blockExists(Block block, MongoHandler handler) {
+    public static boolean blockExists(Block block, MongoHandler handler) {
         Block comp = handler.getBlock(block.getIdx());
         return comp != null && comp.equals(block);
     }
 
-    public void generateGenesis(MongoHandler handler) {
+    public static void generateGenesis(MongoHandler handler, RocksHandler rocksHandler) {
         String path = "/home/baroudy/Projects/Bachelor/payment-system";
         Dotenv dotenv = Dotenv.configure().directory(path).load();
 
@@ -105,8 +107,10 @@ public class BlockServices {
         MetaData data = new MetaData(1, prevHash, nonce, 0);
 
         UTXO output = new UTXO(1e18, pubKey);
-        Transaction transaction = new Transaction(null, output);
+        Transaction transaction = new Transaction(new ArrayList<>(), output);
 
-        handler.saveBlock(new Block(data, new MerkelTree(List.of(transaction))));
+        Block b = new Block(data, new MerkelTree(List.of(transaction)));
+        handler.saveBlock(b);
+        rocksHandler.update(b);
     }
 }

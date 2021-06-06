@@ -93,7 +93,7 @@ public class RocksHandler {
         HashSet<UTXO> ret;
         try {
             byte[] arr = db.get(utxos, pubKey.getBytes());
-            ret = (HashSet<UTXO>) deserialize(arr);
+            ret = arr == null ? new HashSet<>() : (HashSet<UTXO>) deserialize(arr);
         } catch (RocksDBException e) {
             return new HashSet<>();
         }

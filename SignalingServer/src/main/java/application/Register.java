@@ -49,6 +49,12 @@ public class Register extends HttpServlet {
                 json.addProperty("parentId", parent[0]);
             }
 
+            int cnt = handler.getNumberOfNodes();
+
+            if(cnt == 1){
+                SignalingServer.segment();
+            }
+
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.setContentType("application/json");
             out.print(json);

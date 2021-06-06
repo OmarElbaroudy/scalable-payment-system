@@ -19,7 +19,6 @@ public class TransactionServices {
     //TODO call rocksHandler update after creating transaction successfully
     public static Transaction createTransaction
     (String[] privKeys, String recKey, double amount, RocksHandler handler) {
-
         ECKeyPair[] keyPairs = new ECKeyPair[privKeys.length];
         for (int i = 0; i < privKeys.length; i++) {
             BigInteger privKey = new BigInteger(privKeys[i], 16);
@@ -35,8 +34,8 @@ public class TransactionServices {
             for (UTXO utxo : st) {
                 balance += utxo.getAmount();
                 byte[] msg = utxo.toString().getBytes();
-                Sign.SignatureData signature =
-                        Sign.signMessage(msg, pair, false);
+                Sign.SignatureData signature = Sign.signMessage(msg, pair);
+
                 UTXO signed = new UTXO(utxo, signature);
                 input.add(signed);
             }
@@ -99,9 +98,9 @@ public class TransactionServices {
 
     public static double getBalance(String[] pubKeys, RocksHandler handler) {
         double balance = 0;
-        for (String pubKey : pubKeys){
+        for (String pubKey : pubKeys) {
             HashSet<UTXO> st = handler.getUTXOSet(pubKey);
-            for(UTXO utxo : st){
+            for (UTXO utxo : st) {
                 balance += utxo.getAmount();
             }
         }

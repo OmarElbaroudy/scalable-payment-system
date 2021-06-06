@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class SignalingServerTester {
     private final static String BASE_URL = "http://localhost:5000";
-    private static SignalingServer signalingServer;
     private static OkHttpClient client;
     private static RocksHandler handler;
     private static Gson gson;
@@ -28,8 +27,7 @@ public class SignalingServerTester {
             Deregister.setHandler(handler);
             Register.setHandler(handler);
 
-            signalingServer = new SignalingServer();
-            signalingServer.start();
+            SignalingServer.start();
             client = new OkHttpClient();
             gson = new Gson();
         } catch (Exception e) {
@@ -40,7 +38,7 @@ public class SignalingServerTester {
     @AfterAll
     static void close() {
         try {
-            signalingServer.stop();
+            SignalingServer.stop();
             handler.closeHandler();
         } catch (Exception e) {
             System.err.println(e.getMessage());
@@ -67,24 +65,23 @@ public class SignalingServerTester {
 
     @DisplayName("Unregistering node correctly")
     @Test
-    void whenNodeDeRegisters_thenCommitteesAreUpdatedCorrectly(){
-        try{
+    void whenNodeDeRegisters_thenCommitteesAreUpdatedCorrectly() {
+        try {
             Request req = new Request.Builder().url(BASE_URL + "/register").build();
             ResponseBody resBody = client.newCall(req).execute().body();
             JsonObject json = JsonParser.parseString(resBody.string()).getAsJsonObject();
 
             String nodeId = json.get("nodeId").getAsString();
 
-            RequestBody body = new MultipartBuilder().
-                    type(MultipartBuilder.FORM).
-                    addFormDataPart("nodeId",nodeId).build();
+            MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+            RequestBody body = RequestBody.create(JSON, json.toString());
 
             req = new Request.Builder().url(BASE_URL + "/deregister").
                     addHeader("nodeId", nodeId).
                     post(body).build();
 
             client.newCall(req).execute();
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             fail();
         }

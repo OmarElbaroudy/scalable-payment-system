@@ -143,6 +143,17 @@ public class RocksHandler {
         return max;
     }
 
+    public int getNumberOfNodes(){
+        RocksIterator rocksIterator = db.newIterator(distribution);
+        rocksIterator.seekToFirst();
+        int cnt = 0;
+        while (rocksIterator.isValid()){
+            cnt += Integer.parseInt(new String(rocksIterator.value()));
+            rocksIterator.next();
+        }
+        return cnt;
+    }
+
     public void closeHandler() {
         for (ColumnFamilyHandle handle : cfHandles) {
             handle.close();

@@ -35,7 +35,7 @@ public class MongoConnectionHandler {
     public MongoConnectionHandler(String id){
         this.nodeId = id;
         this.mc = MongoClients.create(getMongoClientSettings());
-        this.db = mc.getDatabase(nodeId.toString());
+        this.db = mc.getDatabase(nodeId);
         this.blockchain = this.db.getCollection("Block", Block.class);
         System.out.printf("connected to db %s successfully %n", nodeId);
     }
