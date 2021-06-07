@@ -81,7 +81,7 @@ public class Node {
         switch (parentType) {
             case "nil" -> {
                 System.out.println("generating genesis block");
-                BlockServices.generateGenesis(mongoHandler, rocksHandler);
+                BlockServices.generateGenesis(mongoHandler, rocksHandler, true);
             }
 
             case "SAME_COMMITTEE" -> {
@@ -102,7 +102,7 @@ public class Node {
 
             case "DIFFERENT_COMMITTEE" -> {
                 System.out.println("generating genesis block");
-                Block b = BlockServices.generateGenesis(mongoHandler, rocksHandler);
+                Block b = BlockServices.generateGenesis(mongoHandler, rocksHandler, false);
                 String json = gson.toJson(b);
 
                 Map<String, Object> mp = new HashMap<>();
@@ -139,7 +139,6 @@ public class Node {
                         String senderId = snd == null ? null : new String(snd.getBytes());
 
                         try {
-                            System.out.println(task);
                             server.exec(task, senderId, body);
                         } catch (Exception e) {
                             e.printStackTrace();

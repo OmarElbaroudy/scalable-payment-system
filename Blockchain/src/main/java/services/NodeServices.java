@@ -159,7 +159,11 @@ public class NodeServices {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, null);
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("nodeId", nodeId);
+        String jsonString = jsonObject.toString();
+
+        channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, jsonString.getBytes());
     }
 
 

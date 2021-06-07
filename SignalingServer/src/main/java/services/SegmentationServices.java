@@ -76,6 +76,8 @@ public class SegmentationServices {
     }
 
     private void blockValidated(byte[] body) {
+        if(!mining)  return;
+
         String s = new String(body);
         JsonObject json = JsonParser.parseString(s).getAsJsonObject();
         String nodeId = json.get("nodeId").getAsString();
