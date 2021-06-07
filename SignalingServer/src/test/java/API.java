@@ -39,7 +39,7 @@ public class API {
 
         String json = jsonObject.toString();
 
-        for (int i = 0; i < 1; i++){
+        for (int i = 0; i < 10; i++){
             channel.basicPublish(EXCHANGE_NAME, "SIGNALING_SERVER", props, json.getBytes());
         }
     }

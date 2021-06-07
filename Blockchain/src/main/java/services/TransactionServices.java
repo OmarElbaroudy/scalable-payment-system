@@ -65,6 +65,7 @@ public class TransactionServices {
             byte[] msg = utxo.toString().getBytes();
             BigInteger pubKeyRecovered = Sign.signedMessageToKey(msg, utxo.getScriptSig());
             boolean validSig = pubKeyRecovered.toString(16).equals(utxo.getScriptPublicKey());
+
             flag &= validSig;
         }
 

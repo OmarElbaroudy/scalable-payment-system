@@ -15,9 +15,10 @@ import java.util.Arrays;
 public class Register extends HttpServlet {
     private static RocksHandler handler;
 
-    public Register() {}
+    public Register() {
+    }
 
-    public static void setHandler(RocksHandler Rockshandler){
+    public static void setHandler(RocksHandler Rockshandler) {
         handler = Rockshandler;
     }
 
@@ -35,23 +36,22 @@ public class Register extends HttpServlet {
             json.addProperty("committeeQueue", committeeQueue);
 
             //parent not found e.g first node in system
-            if(parent[0].equals("nil")){
+            if (parent[0].equals("nil")) {
                 json.addProperty("parentType", "nil");
-            }
+                json.addProperty("parentId", "");
 
-            if(parent[1].equals("SAME_COMMITTEE")){
+            } else if (parent[1].equals("SAME_COMMITTEE")) {
                 json.addProperty("parentType", "SAME_COMMITTEE");
                 json.addProperty("parentId", parent[0]);
-            }
 
-            if(parent[1].equals("DIFFERENT_COMMITTEE")){
+            } else if (parent[1].equals("DIFFERENT_COMMITTEE")) {
                 json.addProperty("parentType", "DIFFERENT_COMMITTEE");
                 json.addProperty("parentId", parent[0]);
             }
 
             int cnt = handler.getNumberOfNodes();
 
-            if(cnt == 1){
+            if (cnt == 2) {
                 SignalingServer.segment();
             }
 

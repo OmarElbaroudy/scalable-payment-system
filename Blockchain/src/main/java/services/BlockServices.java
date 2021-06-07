@@ -96,7 +96,7 @@ public class BlockServices {
         return comp != null && comp.equals(block);
     }
 
-    public static void generateGenesis(MongoHandler handler, RocksHandler rocksHandler) {
+    public static Block generateGenesis(MongoHandler handler, RocksHandler rocksHandler) {
         String path = "/home/baroudy/Projects/Bachelor/payment-system";
         Dotenv dotenv = Dotenv.configure().directory(path).load();
 
@@ -112,5 +112,7 @@ public class BlockServices {
         Block b = new Block(data, new MerkelTree(List.of(transaction)));
         handler.saveBlock(b);
         rocksHandler.update(b);
+
+        return b;
     }
 }
