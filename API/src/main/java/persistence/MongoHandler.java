@@ -25,6 +25,9 @@ public class MongoHandler extends MongoConnectionHandler {
         String fieldName = "userName";
         return this.getUsers().find(eq(fieldName, userName)).first();
     }
+    public User getUserById(String userId){
+        return this.getUsers().find(eq(fieldName,userId)).first();
+    }
 
     public User findUser(String userName, String password) {
         return this.getUsers().find(and(eq(fieldName, userName), eq("password", password))).first();

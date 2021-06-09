@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import persistence.MongoHandler;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.stream.Collectors;
 
 public class Login extends HttpServlet {
@@ -22,14 +23,20 @@ public class Login extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        try {
+        try (PrintWriter out = resp.getWriter()) {
             String body = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
             JsonObject json = JsonParser.parseString(body).getAsJsonObject();
 
             String userName = json.get("userName").getAsString();
             String password = json.get("password").getAsString();
-            //find the user
+
             String userId = handler.findUser(userName, password).getUserId();
+            JsonObject userIdJson = new JsonObject();
+            userIdJson.addProperty("userId", userId);
+            String jsonString = userIdJson.toString();
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType("application/json");
+            out.print(jsonString);
         } catch (Exception e) {
             e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
