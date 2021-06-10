@@ -1,7 +1,5 @@
 package application;
 
-import com.rabbitmq.client.*;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -24,7 +22,7 @@ public class API {
         context.addServlet(Register.class, "/register");
         context.addServlet(Login.class, "/login");
         context.addServlet(Balance.class, "/getBalance");
-        context.addServlet(GenerateTransaction.class, "/generateTransaction");
+        context.addServlet(CreateTransaction.class, "/generateTransaction");
 
         server.setHandler(context);
         server.start();

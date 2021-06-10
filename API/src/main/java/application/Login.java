@@ -23,7 +23,7 @@ public class Login extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        try (PrintWriter out = resp.getWriter()) {
+        try {
             String body = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
             JsonObject json = JsonParser.parseString(body).getAsJsonObject();
 
@@ -34,9 +34,13 @@ public class Login extends HttpServlet {
             JsonObject userIdJson = new JsonObject();
             userIdJson.addProperty("userId", userId);
             String jsonString = userIdJson.toString();
-            resp.setStatus(HttpServletResponse.SC_OK);
+
             resp.setContentType("application/json");
-            out.print(jsonString);
+            resp.setStatus(HttpServletResponse.SC_OK);
+
+            PrintWriter out = resp.getWriter();
+            out.print("login successful!");
+
         } catch (Exception e) {
             e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

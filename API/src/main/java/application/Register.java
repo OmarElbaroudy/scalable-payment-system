@@ -12,6 +12,7 @@ import org.web3j.crypto.ECKeyPair;
 import persistence.User;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,7 +40,12 @@ public class Register extends HttpServlet {
             String pubKey = pair.getPublicKey().toString(16);
             User newUser = new User(userName, userId, password, pubKey, privKey);
             handler.saveUser(newUser);
+
+            resp.setContentType("application/json");
             resp.setStatus(HttpServletResponse.SC_OK);
+
+            PrintWriter out = resp.getWriter();
+            out.print("you are now registered!");
 
         } catch (Exception e) {
             e.printStackTrace();

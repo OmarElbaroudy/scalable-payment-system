@@ -1,7 +1,7 @@
 package application;
 
-
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -18,8 +18,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class Balance extends HttpServlet {
+public class CreateTransaction extends HttpServlet {
     private static MongoHandler handler;
     private static String EXCHANGE_NAME;
 
@@ -33,10 +34,17 @@ public class Balance extends HttpServlet {
         EXCHANGE_NAME = dotenv.get("EXCHANGE_NAME");
     }
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             User user = handler.getUserById(req.getHeader("userId"));
-            String pubKey = user.getPubKey();
+            String privKey = user.getPrivKey();
+
+            String body = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+            JsonObject jsonObj = JsonParser.parseString(body).getAsJsonObject();
+            String userName = jsonObj.get("userName").getAsString();
+            double amount = jsonObj.get("amount").getAsDouble();
+            User receiver = handler.getUser(userName);
+            String recKey = receiver.getPubKey();
 
             setEXCHANGE_NAME();
 
@@ -45,7 +53,7 @@ public class Balance extends HttpServlet {
             Channel channel = connection.createChannel();
 
             Map<String, Object> mp = new HashMap<>();
-            mp.put("task", "getBalance");
+            mp.put("task", "createTransaction");
 
             AMQP.BasicProperties props =
                     new AMQP.BasicProperties().
@@ -55,7 +63,9 @@ public class Balance extends HttpServlet {
                             build();
 
             JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("pubKey", pubKey);
+            jsonObject.addProperty("privKey", privKey);
+            jsonObject.addProperty("recKey", recKey);
+            jsonObject.addProperty("amount", amount);
 
             String json = jsonObject.toString();
 
@@ -65,11 +75,12 @@ public class Balance extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_OK);
 
             PrintWriter out = resp.getWriter();
-            out.print("login successful!");
+            out.print("transaction created!");
+
         } catch (Exception e) {
             e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-
         }
+
     }
 }
