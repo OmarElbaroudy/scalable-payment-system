@@ -117,6 +117,19 @@ public class Node {
 
                 System.out.println("sending update request");
                 channel.basicPublish(exchangeName, primaryQueue, props, json.getBytes());
+
+                mp.put("task", "sendGenesisUTXO");
+                mp.put("senderId", nodeId);
+
+                props = new AMQP.BasicProperties().
+                        builder().
+                        headers(mp).
+                        contentType("application/json").
+                        build();
+
+                channel.basicPublish(exchangeName, parentId, props, null);
+
+
             }
         }
     }

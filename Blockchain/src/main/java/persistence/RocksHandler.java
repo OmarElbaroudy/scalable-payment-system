@@ -6,6 +6,7 @@ import org.rocksdb.*;
 import persistence.models.Block;
 import persistence.models.Transaction;
 import persistence.models.UTXO;
+import services.TransactionServices;
 
 import java.io.Serializable;
 import java.util.*;
@@ -109,7 +110,6 @@ public class RocksHandler {
         return true;
     }
 
-    //TODO test that getUTXOSet never returns null
     public void refresh(MongoHandler handler) {
         int idx = 1;
         Block b = handler.getBlock(idx);
@@ -133,27 +133,43 @@ public class RocksHandler {
         }
     }
 
-    public void update(Transaction t){
-        //all set can be removed safely
-        for(UTXO utxo : t.getInput()){
-            this.removeUTXOSet(utxo.getScriptPublicKey());
+    public void update(List<Transaction> ts){
+        double rem = 0, val = 0;
+        for(Transaction t : ts){
+            rem += t.getOutput().getAmount();
+            HashSet<UTXO> st = getUTXOSet(t.getOutput().getScriptPublicKey());
+            st.add(t.getOutput());
+            addUTXOSet(t.getOutput().getScriptPublicKey(), st);
         }
 
-        HashSet<UTXO> st = getUTXOSet(t.getOutput().getScriptPublicKey());
-        st.add(t.getOutput());
-        addUTXOSet(t.getOutput().getScriptPublicKey(), st);
+        if(!ts.get(0).getInput().isEmpty()){
+            String pubKey = ts.get(0).getInput().get(0).getScriptPublicKey();
+            HashSet<UTXO> st = getUTXOSet(pubKey);
 
-        if(t.getReturned() != null){
+            for(UTXO utxo : st){
+                val += utxo.getAmount();
+            }
+
+            System.out.println("val and rem");
+            System.out.println(val + " " + rem);
+
             st.clear();
-            st.add(t.getReturned());
-            addUTXOSet(t.getReturned().getScriptPublicKey(), st);
+            st.add(new UTXO(val - rem, pubKey));
+            addUTXOSet(pubKey, st);
         }
+
     }
 
     public void update(Block b){
-        for(Transaction t : b.getTransactions().getTransactions()){
-            this.update(t);
+        List<Transaction> ts = b.getTransactions().getTransactions();
+        HashMap<String, List<Transaction>> mp = new HashMap<>();
+
+        TransactionServices.orderByPubKey(ts, mp);
+
+        for(var e : mp.entrySet()){
+            this.update(e.getValue());
         }
+
     }
 
     public void closeHandler() {

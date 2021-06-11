@@ -10,6 +10,7 @@
 /.idea
 #target folder
 /Blockchain/target
+/SignalingServer/target
 #tmp folder (rocksDB)
 /Blockchain/src/main/java/tmp
 #enviroment file
@@ -17,5 +18,4 @@
 #iml file
 /Blockchain/Blockchain.iml
 /SignalingServer/SignalingServer.iml
-/SignalingServer/target
 /API/API.iml

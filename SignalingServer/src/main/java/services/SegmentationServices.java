@@ -13,6 +13,7 @@ public class SegmentationServices {
     private final Channel channel;
     private final String exchangeName = "BLOCKCHAIN";
     private final CoordinationServices services;
+    private final RocksHandler handler;
     private final int numberOfCommittees;
     private int transactionNumber = 0;
     private boolean mining = false;
@@ -20,12 +21,12 @@ public class SegmentationServices {
 
     public SegmentationServices(RocksHandler handler, Channel channel) {
         this.channel = channel;
+        this.handler = handler;
         services = new CoordinationServices(handler);
         numberOfCommittees = handler.getNumberOfCommittees();
     }
 
     private void createTransaction(byte[] body) throws Exception {
-        transactionNumber++;
         curCommittee = curCommittee % numberOfCommittees + 1;
         String nodeId = services.getRandomNodeId(String.valueOf(curCommittee));
 
@@ -81,14 +82,19 @@ public class SegmentationServices {
         String s = new String(body);
         JsonObject json = JsonParser.parseString(s).getAsJsonObject();
         String nodeId = json.get("nodeId").getAsString();
-        mining = !services.endBlockValidationPhase(nodeId);
+        mining = services.isMining(nodeId, false);
     }
 
     private void segment() throws Exception {
-        if (!mining && transactionNumber >= 1000) {
+        if (!mining && transactionNumber >= 10) {
+
+            transactionNumber = 0;
+            mining = true;
+
             for (int i = 1; i <= numberOfCommittees; i++) {
                 String nodeId = services.getRandomNodeId(String.valueOf(i));
 
+                System.out.println("requesting node " + nodeId + " to mine");
                 Map<String, Object> mp = new HashMap<>();
                 mp.put("task", "mine");
 
@@ -104,6 +110,15 @@ public class SegmentationServices {
         }
     }
 
+    public void incTransactions(){
+        transactionNumber++;
+    }
+
+    public void incTransactionsByCommittee(byte[] body) {
+        String committeeId = new String(body);
+        mining = services.isMining(committeeId, true);
+    }
+
     public void exec(String task, byte[] body) throws Exception {
         switch (task) {
             case "createTransaction" -> createTransaction(body);
@@ -113,6 +128,10 @@ public class SegmentationServices {
             case "routeBalance" -> routeBalance(body);
 
             case "blockValidated" -> blockValidated(body);
+
+             case "incTransactions" -> incTransactions();
+
+             case "validateCommittee" -> incTransactionsByCommittee(body);
         }
 
         segment();

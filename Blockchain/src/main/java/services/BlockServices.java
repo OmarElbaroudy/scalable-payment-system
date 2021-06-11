@@ -10,35 +10,68 @@ import persistence.models.Transaction;
 import persistence.models.UTXO;
 import utilities.MerkelTree;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class BlockServices {
 
-    public static Block mineBlock(List<Transaction> transactions, MongoHandler handler) {
+    public static Block mineBlock(List<Transaction> transactions, MongoHandler handler, RocksHandler rocksHandler) {
         Block lst = getLastBlock(handler);
         String prevHash = hash(Objects.requireNonNull(lst).toString());
         String path = "/home/baroudy/Projects/Bachelor/payment-system";
         Dotenv dotenv = Dotenv.configure().directory(path).load();
 
         int nonce = 0;
-        int idx = lst.getIdx();
+        int idx = lst.getIdx() + 1;
         int difficulty = Integer.parseInt(
                 Objects.requireNonNull(dotenv.get("DIFFICULTY")));
 
-        for (boolean flag = false; !flag; nonce++) {
+        List<Transaction> ts = revalidateTransactions(transactions, rocksHandler);
+
+        for (boolean flag; true; nonce++) {
             MetaData data = new MetaData(idx, prevHash, nonce, difficulty);
-            MerkelTree tree = new MerkelTree(transactions);
+            MerkelTree tree = new MerkelTree(ts);
             Block b = new Block(data, tree);
             String hashedValue = hash(b.toString());
             flag = check(hashedValue, difficulty);
+            if(flag) return b;
+        }
+    }
+
+    private static List<Transaction> revalidateTransactions(List<Transaction> ts, RocksHandler handler) {
+        HashMap<String, List<Transaction>> mp = new HashMap<>();
+        List<Transaction> ret = new ArrayList<>();
+
+        TransactionServices.orderByPubKey(ts, mp);
+
+        for(var e : mp.entrySet()){
+            double amount = 0, balance = 0;
+            List<Transaction> cur = e.getValue();
+            HashSet<UTXO>  st = handler.getUTXOSet(e.getKey());
+
+            for(Transaction t : cur){
+                amount += t.getOutput().getAmount();
+            }
+
+            for(UTXO utxo : st){
+                balance += utxo.getAmount();
+            }
+
+            while(!cur.isEmpty() && amount > balance){
+                int lstIdx = cur.size() - 1;
+                amount -= cur.get(lstIdx).getOutput().getAmount();
+
+                cur.remove(lstIdx);
+            }
         }
 
-        MetaData data = new MetaData(idx, prevHash, nonce, difficulty);
-        MerkelTree tree = new MerkelTree(transactions);
-        return new Block(data, tree);
+        for(var e : mp.entrySet()){
+            ret.addAll(e.getValue());
+        }
+
+        return ret;
     }
+
+
 
     private static boolean check(String s, int diff) {
         for (int i = 0; i < diff; i++) {
@@ -65,15 +98,19 @@ public class BlockServices {
 
     /**
      * @param block      that is needed to be validated and added
-     * @param difficulty at which the target hash is checked
      * @param handler    for inserting the block in the db
      * @return list of transactions if block is validated and added successfully
      * or null if block is invalid. if a block already exists in the database
      * with the same index it will be replaced by the validated block
      */
-    public static List<Transaction> validateAndAddBlock(Block block, int difficulty, MongoHandler handler) {
+    public static List<Transaction> validateAndAddBlock(Block block, MongoHandler handler) {
         Block lst = getLastBlock(handler);
         if (lst == null) return null; //Genesis
+
+        String path = "/home/baroudy/Projects/Bachelor/payment-system";
+        Dotenv dotenv = Dotenv.configure().directory(path).load();
+        int difficulty = Integer.parseInt(
+                Objects.requireNonNull(dotenv.get("DIFFICULTY")));
 
         boolean flag = lst.getIdx() == block.getIdx() - 1;
         String hashLast = hash(lst.toString());
@@ -86,7 +123,6 @@ public class BlockServices {
         }
 
         if (!flag) return null;
-
         handler.saveBlock(block);
         return block.getTransactions().getTransactions();
     }
@@ -106,7 +142,7 @@ public class BlockServices {
 
         MetaData data = new MetaData(1, prevHash, nonce, 0);
 
-        UTXO output = new UTXO(1e18, pubKey);
+        UTXO output = new UTXO(1000, pubKey);
         Transaction transaction = new Transaction(new ArrayList<>(), output);
 
         Block b = new Block(data, new MerkelTree(List.of(transaction)));

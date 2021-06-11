@@ -11,6 +11,7 @@ import utilities.Sign;
 import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -56,6 +57,8 @@ public class TransactionServices {
             throws SignatureException {
         boolean flag = true;
         double sumIn = 0;
+
+        if(t == null) return false;
 
         for (UTXO utxo : t.getInput()) {
             HashSet<UTXO> st = handler.getUTXOSet(utxo.getScriptPublicKey());
@@ -105,7 +108,27 @@ public class TransactionServices {
                 balance += utxo.getAmount();
             }
         }
+
         return balance;
     }
 
+    public static void orderByPubKey(List<Transaction> ts, HashMap<String, List<Transaction>> mp) {
+        for(Transaction t : ts){
+
+            if(t.getInput().isEmpty()){
+                List<Transaction> cur = mp.getOrDefault("genesis",  new ArrayList<>());
+                cur.add(t);
+
+                mp.put("genesis", cur);
+                continue;
+            }
+
+            UTXO input = t.getInput().get(0);
+            String pubKey = input.getScriptPublicKey();
+            List<Transaction> cur = mp.getOrDefault(pubKey, new ArrayList<>());
+
+            cur.add(t);
+            mp.put(pubKey, cur);
+        }
+    }
 }

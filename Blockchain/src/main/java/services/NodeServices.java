@@ -3,14 +3,15 @@ package services;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Envelope;
 import persistence.MongoHandler;
 import persistence.RocksHandler;
 import persistence.models.Block;
 import persistence.models.Transaction;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +69,18 @@ public class NodeServices {
         if (valid) {
             transactions.add(t);
         }
+
+        Map<String, Object> mp = new HashMap<>();
+        mp.put("task", "incTransactions");
+
+        AMQP.BasicProperties props =
+                new AMQP.BasicProperties().
+                        builder().
+                        headers(mp).
+                        contentType("application/json").
+                        build();
+
+        channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, null);
     }
 
 
@@ -101,8 +114,26 @@ public class NodeServices {
 
     public void mine() throws Exception {
         System.out.println("node " + nodeId + " mining");
-        List<Transaction> rem = List.copyOf(transactions);
-        Block b = BlockServices.mineBlock(rem, mongoHandler);
+
+        if (transactions.isEmpty()) {
+            System.out.println("no transactions to be mined");
+
+            Map<String, Object> mp = new HashMap<>();
+            mp.put("task", "validateCommittee");
+
+            AMQP.BasicProperties props =
+                    new AMQP.BasicProperties().
+                            builder().
+                            headers(mp).
+                            contentType("application/json").
+                            build();
+
+            channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, committeeQueue.getBytes());
+            return;
+        }
+
+        Block b = BlockServices.mineBlock(transactions, mongoHandler, rocksHandler);
+        System.out.println(b.getTransactions().getTransactions().size());
 
         //committee validate block
         Map<String, Object> mp = new HashMap<>();
@@ -118,9 +149,21 @@ public class NodeServices {
         String block = gson.toJson(b);
         channel.basicPublish(exchangeName, committeeQueue, props, block.getBytes());
 
+//        if (!rem.isEmpty()) {
+//            mp.put("task", "cleanTransactions");
+//
+//            props = new AMQP.BasicProperties().
+//                    builder().
+//                    headers(mp).
+//                    contentType("application/json").
+//                    build();
+//
+//            byte[] transactions = gson.toJson(rem).getBytes();
+//            channel.basicPublish(exchangeName, committeeQueue, props, transactions);
+//        }
+
 
         //update utxos
-        mp.clear();
         mp.put("task", "updateUTXO");
         props = new AMQP.BasicProperties().
                 builder().
@@ -136,8 +179,8 @@ public class NodeServices {
         System.out.println("node " + nodeId + " validating block");
         String blockJson = new String(body);
         Block block = gson.fromJson(blockJson, Block.class);
-        List<Transaction> rem = BlockServices.validateAndAddBlock(block, 5, mongoHandler);
-        System.out.println(rem == null ? "null" : rem.toString());
+        List<Transaction> rem = BlockServices.validateAndAddBlock(block, mongoHandler);
+        System.out.println(rem == null ? "block is invalid" : "block is valid");
         if (rem != null) transactions.removeAll(rem);
     }
 
@@ -196,6 +239,39 @@ public class NodeServices {
         rocksHandler.update(b);
     }
 
+    public void cleanTransactions(byte[] body) {
+        String jsonString = new String(body);
+
+        Type listType = new TypeToken<List<Transaction>>() {
+        }.getType();
+
+        List<Transaction> ts = gson.fromJson(jsonString, listType);
+        transactions.removeAll(ts);
+    }
+
+    public void sendGenesisUTXO(String senderId) throws Exception{
+        Block b = mongoHandler.getBlock(1);
+        String json = gson.toJson(b);
+
+        Map<String, Object> mp = new HashMap<>();
+        mp.put("task", "recGenesisUTXO");
+
+        AMQP.BasicProperties props =
+                new AMQP.BasicProperties().
+                        builder().
+                        headers(mp).
+                        contentType("application/json").
+                        build();
+
+        channel.basicPublish(exchangeName, senderId, props, json.getBytes());
+    }
+
+    public void recGenesisUTXO(byte[] body){
+        String jsonString = new String(body);
+        Block b = gson.fromJson(jsonString, Block.class);
+
+        rocksHandler.update(b);
+    }
 
     public void exec(String task, String senderId, byte[] body) throws Exception {
         switch (task) {
@@ -214,6 +290,12 @@ public class NodeServices {
             case "sendGenesis" -> sendGenesis(senderId);
 
             case "recGenesis" -> recGenesis(body);
+
+            case "cleanTransactions" -> cleanTransactions(body);
+
+            case "sendGenesisUTXO" -> sendGenesisUTXO(senderId);
+
+            case "recGenesisUTXO" -> recGenesisUTXO(body);
         }
     }
 

@@ -51,7 +51,7 @@ public class Register extends HttpServlet {
 
             int cnt = handler.getNumberOfNodes();
 
-            if (cnt == 3) {
+            if (cnt == 2) {
                 SignalingServer.segment();
             }
 

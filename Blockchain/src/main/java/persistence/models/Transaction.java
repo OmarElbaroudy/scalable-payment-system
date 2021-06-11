@@ -1,6 +1,7 @@
 package persistence.models;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Transaction {
     private List<UTXO> input;
@@ -52,5 +53,21 @@ public class Transaction {
                 ", output=" + (output == null ? "" : output.toString()) +
                 ", returned=" + (returned == null ? "" : returned.toString()) +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Transaction that = (Transaction) o;
+        return input != null && that.input != null &&
+                Objects.equals(input.get(0), that.input.get(0)) &&
+                Objects.equals(output, that.output) &&
+                Objects.equals(returned, that.returned);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(input, output, returned);
     }
 }
