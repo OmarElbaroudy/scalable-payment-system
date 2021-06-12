@@ -150,9 +150,6 @@ public class RocksHandler {
                 val += utxo.getAmount();
             }
 
-            System.out.println("val and rem");
-            System.out.println(val + " " + rem);
-
             st.clear();
             st.add(new UTXO(val - rem, pubKey));
             addUTXOSet(pubKey, st);

@@ -64,7 +64,12 @@ public class SegmentationServices {
 
     private void routeBalance(byte[] body) throws Exception {
         Map<String, Object> mp = new HashMap<>();
-        mp.put("task", "balance");
+
+        String s = new String(body);
+        JsonObject json = JsonParser.parseString(s).getAsJsonObject();
+        String pubKey = json.get("pubKey").getAsString();
+
+        mp.put("pubKey", pubKey);
 
         AMQP.BasicProperties props =
                 new AMQP.BasicProperties().
@@ -86,7 +91,7 @@ public class SegmentationServices {
     }
 
     private void segment() throws Exception {
-        if (!mining && transactionNumber >= 10) {
+        if (!mining && transactionNumber >= 3) {
 
             transactionNumber = 0;
             mining = true;

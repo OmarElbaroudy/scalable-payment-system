@@ -98,6 +98,7 @@ public class NodeServices {
 
         json = new JsonObject();
         json.addProperty("amount", amount);
+        json.addProperty("pubKey", pubKey);
 
         Map<String, Object> mp = new HashMap<>();
         mp.put("task", "routeBalance");

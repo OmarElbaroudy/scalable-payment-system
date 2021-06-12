@@ -1,7 +1,6 @@
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.rabbitmq.client.*;
-import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -36,17 +35,17 @@ public class API {
 
         String json = jsonObject.toString();
 
-        for (int i = 0; i < 25; i++){
+        for (int i = 0; i < 25; i++) {
             channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, json.getBytes());
         }
 
         mp.put("task", "getBalance");
 
         props = new AMQP.BasicProperties().
-                        builder().
-                        headers(mp).
-                        contentType("application/json").
-                        build();
+                builder().
+                headers(mp).
+                contentType("application/json").
+                build();
 
         jsonObject = new JsonObject();
         jsonObject.addProperty("pubKey", "62ffed2867dc8bddbb1e95152a9f24b603416dd1bcd2a685c7ca9c1ea0553ead0447d8d77dfaca3c0a074c7de571c6d03a664f43a98a3f828ba28933e36757d7");
@@ -71,15 +70,16 @@ public class API {
 
                         long deliveryTag = envelope.getDeliveryTag();
 
-                        LongString ls = (LongString) properties.getHeaders().get("task");
-                        String task = new String(ls.getBytes());
+                        LongString ls = (LongString) properties.getHeaders().get("pubKey");
+                        String pubKey = new String(ls.getBytes());
 
-                        if(task.equals("balance")){
-                            String s = new String(body);
-                            JsonObject json = JsonParser.parseString(s).getAsJsonObject();
-                            double amount = json.get("amount").getAsDouble();
-                            System.out.println("amount is " + amount);
-                        }
+                        String s = new String(body);
+                        JsonObject json = JsonParser.parseString(s).getAsJsonObject();
+                        double amount = json.get("amount").getAsDouble();
+
+                        System.out.println("amount is " + amount);
+                        System.out.println(pubKey);
+
 
                         channel.basicAck(deliveryTag, false);
                     }

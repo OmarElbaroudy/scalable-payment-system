@@ -1,13 +1,19 @@
 package persistence;
 
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import persistence.models.User;
+
+import java.util.Collection;
+
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 public class MongoHandler extends MongoConnectionHandler {
     private String fieldName = "userId";
 
-    public MongoHandler(String id) {
-        super(id);
+    public MongoHandler() {
+        super();
     }
 
     public void saveUser(User user) {
@@ -30,6 +36,14 @@ public class MongoHandler extends MongoConnectionHandler {
     }
 
     public User findUser(String userName, String password) {
-        return this.getUsers().find(and(eq(fieldName, userName), eq("password", password))).first();
+        return this.getUsers().find(and(eq("userName", userName), eq("password", password))).first();
+    }
+
+    public User findUser(String userName){
+        return this.getUsers().find(eq("userName", userName)).first();
+    }
+
+    public boolean userExists(String userName) {
+        return this.getUsers().find(eq(fieldName, userName)).first() != null;
     }
 }

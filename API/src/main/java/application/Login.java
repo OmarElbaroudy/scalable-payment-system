@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import persistence.MongoHandler;
+import persistence.models.User;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,16 +31,25 @@ public class Login extends HttpServlet {
             String userName = json.get("userName").getAsString();
             String password = json.get("password").getAsString();
 
-            String userId = handler.findUser(userName, password).getUserId();
-            JsonObject userIdJson = new JsonObject();
-            userIdJson.addProperty("userId", userId);
-            String jsonString = userIdJson.toString();
+
+            User user = handler.findUser(userName, password);
+            json = new JsonObject();
+
 
             resp.setContentType("application/json");
             resp.setStatus(HttpServletResponse.SC_OK);
 
             PrintWriter out = resp.getWriter();
-            out.print("login successful!");
+
+            if(user == null){
+                json.addProperty("message", "invalid");
+
+            }else{
+                json.addProperty("message", "valid");
+                json.addProperty("userId", user.getUserId());
+            }
+
+            out.print(json);
 
         } catch (Exception e) {
             e.printStackTrace();

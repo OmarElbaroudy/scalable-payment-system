@@ -1,4 +1,4 @@
-package persistence;
+package persistence.models;
 
 public class User {
     private String userName;
@@ -56,5 +56,16 @@ public class User {
 
     public void setPrivKey(String privKey) {
         this.privKey = privKey;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userName='" + userName + '\'' +
+                ", userId='" + userId + '\'' +
+                ", password='" + password + '\'' +
+                ", pubKey='" + pubKey + '\'' +
+                ", privKey='" + privKey + '\'' +
+                '}';
     }
 }

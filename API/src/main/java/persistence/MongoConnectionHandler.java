@@ -1,41 +1,39 @@
 package persistence;
 
-import io.github.cdimascio.dotenv.Dotenv;
-
-import java.util.Objects;
-
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import persistence.models.User;
+
+import java.util.Objects;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 
 public class MongoConnectionHandler {
-    private final String userName;
     private final MongoClient mc;
     private final MongoDatabase db;
     private final MongoCollection<User> users;
 
-    public MongoConnectionHandler(String userName) {
-        this.userName = userName;
+    public MongoConnectionHandler() {
         this.mc = MongoClients.create(getMongoClientSettings());
-        this.db = mc.getDatabase(userName);
+        this.db = mc.getDatabase("API");
         this.users = this.db.getCollection("User", User.class);
-        System.out.printf("connected to db %s successfully %n", userName);
+        System.out.printf("connected to db %s successfully %n", "API");
     }
 
     /**
      * @return mongodb uri connection String
      */
     private ConnectionString getConnectionString() {
-        String path = "C://Users//ahmed//Documents//GitHub//payment-system";
+        String path = "/home/baroudy/Projects/Bachelor/payment-system";
         Dotenv dotenv = Dotenv.configure().directory(path).load();
         return new ConnectionString(Objects.requireNonNull(dotenv.get("MONGODB_URI")));
     }

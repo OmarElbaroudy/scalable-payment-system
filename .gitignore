@@ -11,6 +11,7 @@
 #target folder
 /Blockchain/target
 /SignalingServer/target
+/API/target
 #tmp folder (rocksDB)
 /Blockchain/src/main/java/tmp
 #enviroment file
