@@ -21,3 +21,5 @@
 /SignalingServer/SignalingServer.iml
 /API/API.iml
 /Client/client.iml
+#node modules
+/Client/node_modules
