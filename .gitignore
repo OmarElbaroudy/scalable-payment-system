@@ -22,3 +22,5 @@
 /API/API.iml
 /Client/client.iml
 #node modules
+Client/node_modules
+Client/package-lock.json

@@ -1,5 +1,5 @@
 import * as React from 'react';
-
+import {useEffect, useState} from "react";
 import {
     Text,
     View,
@@ -9,44 +9,50 @@ import {
 } from 'react-native';
 
 
-export default class Regform extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            userName: "",
-            password: ""
+export default function () {
+    const [userName, setUserName] = useState('');
+    const [password, setPassword] = useState('');
+    const [pressed, setPressed] = useState(false);
+
+    useEffect(() => {
+        if (pressed) {
+            const requestOptions = {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({userName: userName, password: password})
+            };
+            fetch('http://localhost:19006/register', requestOptions)
+                .then(response => response.json()); //.then(data => this.setState({ postId: data.id }));
         }
-    }
-
-    render() {
-        return (
-            <View style={styles.Wrapper}>
-                <View style={styles.headerWrapper}>
-                    <Text style={styles.heading}> Registration </Text>
-                </View>
-                <TextInput style={styles.textinput}
-                           underlineColorAndroid="transparent"
-                           placeholder="Enter User Name"
-                           placeholderTextColor='black'
-                           onChangeText={(value) => this.setState({userName: value})}
-                />
-                <TextInput style={styles.textinput}
-                           underlineColorAndroid="transparent"
-                           placeholder="Enter Password"
-                           placeholderTextColor='black'
-                           autoCapitalize="none"
-                           secureTextEntry="true"
-                           onChangeText={(value) => this.setState({password: value})}
-                />
-
-                <TouchableOpacity style={styles.ButtonStyle}>
-                    <Text style={styles.TextStyle}> Create Account </Text>
-                </TouchableOpacity>
-
+    }, [userName, password, pressed]);
+    return (
+        <View style={styles.Wrapper}>
+            <View style={styles.headerWrapper}>
+                <Text style={styles.heading}> Registration </Text>
             </View>
+            <TextInput style={styles.textinput}
+                       underlineColorAndroid="transparent"
+                       placeholder="Enter User Name"
+                       placeholderTextColor='black'
+                       onChangeText={(value) => setUserName(value)}
+            />
+            <TextInput style={styles.textinput}
+                       underlineColorAndroid="transparent"
+                       placeholder="Enter Password"
+                       placeholderTextColor='black'
+                       autoCapitalize="none"
+                       secureTextEntry="true"
+                       onChangeText={(value) => setPassword(value)}
+            />
 
-        );
-    }
+            <TouchableOpacity onPress={() => setPressed(true)} style={styles.ButtonStyle}>
+                <Text style={styles.TextStyle}> Create Account </Text>
+            </TouchableOpacity>
+
+        </View>
+
+    );
+
 }
 
 
