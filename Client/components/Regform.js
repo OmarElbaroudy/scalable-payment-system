@@ -7,24 +7,27 @@ import {
     TextInput,
     TouchableOpacity
 } from 'react-native';
-
+import fetches from '../API/fetches';
 
 export default function () {
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
-    const [pressed, setPressed] = useState(false);
-
-    useEffect(() => {
-        if (pressed) {
+    const onPress = async () => {
+        //console.log(userName + "   " + password);
+        //const data = await fetches.register(userName, password);
+        try {
             const requestOptions = {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({userName: userName, password: password})
             };
-            fetch('http://localhost:19006/register', requestOptions)
-                .then(response => response.json()); //.then(data => this.setState({ postId: data.id }));
+            const res = await fetch('http://localhost:5000/register', requestOptions)
+            return res.json();
+        } catch (e) {
+            console.log(e);
         }
-    }, [userName, password, pressed]);
+    };
+
     return (
         <View style={styles.Wrapper}>
             <View style={styles.headerWrapper}>
@@ -45,7 +48,7 @@ export default function () {
                        onChangeText={(value) => setPassword(value)}
             />
 
-            <TouchableOpacity onPress={() => setPressed(true)} style={styles.ButtonStyle}>
+            <TouchableOpacity onPress={onPress} style={styles.ButtonStyle}>
                 <Text style={styles.TextStyle}> Create Account </Text>
             </TouchableOpacity>
 

@@ -7,12 +7,15 @@ import {
     TextInput,
     TouchableOpacity
 } from 'react-native';
+import {fetches} from "../API/fetches";
 
 export default function () {
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
     const [pressed, setPressed] = useState(false);
-
+    const onPress = async () => {
+        const data = await fetches.login(userName, password);
+    };
     useEffect(() => {
         if (pressed) {
             const requestOptions = {
@@ -20,7 +23,7 @@ export default function () {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({userName: userName, password: password})
             };
-            fetch('http://localhost:19006/login', requestOptions)
+            fetch('http://localhost:5000/login', requestOptions)
                 .then(response => response.json());
         }
     }, [userName, password, pressed]);
@@ -46,7 +49,7 @@ export default function () {
                        onChangeText={(value) => setPassword(value)}
             />
 
-            <TouchableOpacity onPress={() => setPressed(true)} style={styles.ButtonStyle}>
+            <TouchableOpacity onPress={onPress} style={styles.ButtonStyle}>
                 <Text style={styles.TextStyle}> Login </Text>
             </TouchableOpacity>
 
