@@ -1,31 +1,15 @@
 import * as React from 'react';
-import {useEffect, useState} from "react";
-import {
-    Text,
-    View,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity
-} from 'react-native';
-import fetches from '../API/fetches';
+import {useState} from 'react';
+import {fetcher} from "../API/Fetcher";
+import {StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 
 export default function () {
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
     const onPress = async () => {
-        //console.log(userName + "   " + password);
-        //const data = await fetches.register(userName, password);
-        try {
-            const requestOptions = {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({userName: userName, password: password})
-            };
-            const res = await fetch('http://localhost:5000/register', requestOptions)
-            return res.json();
-        } catch (e) {
-            console.log(e);
-        }
+        console.log(userName + " " + password)
+        const data = await fetcher.register(userName, password);
+        console.log("data is " + data.message);
     };
 
     return (

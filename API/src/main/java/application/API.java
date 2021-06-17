@@ -3,15 +3,18 @@ package application;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.rabbitmq.client.*;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import persistence.MongoHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -88,6 +91,13 @@ public class API {
 
         ServletContextHandler context = new ServletContextHandler();
 
+        // Add the filter, and then use the provided FilterHolder to configure it
+        FilterHolder cors = context.addFilter(CrossOriginFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+        cors.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+        cors.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
+        cors.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,POST,HEAD,OPTIONS");
+        cors.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,userId");
+
         MongoHandler handler = new MongoHandler();
 
         Register.setHandler(handler);
@@ -143,7 +153,7 @@ public class API {
         out.print(jsonObject);
     }
 
-    public static void getBalance(HttpServletResponse resp, String pubKey) throws IOException{
+    public static void getBalance(HttpServletResponse resp, String pubKey) throws IOException {
         Map<String, Object> mp = new HashMap<>();
         mp.put("task", "getBalance");
 
@@ -162,7 +172,6 @@ public class API {
 
         addResponse(pubKey, resp);
     }
-
 
 
     public void stop() throws Exception {

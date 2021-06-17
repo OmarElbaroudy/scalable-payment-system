@@ -1,32 +1,15 @@
 import * as React from 'react';
-import {useEffect, useState} from "react";
-import {
-    Text,
-    View,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity
-} from 'react-native';
-import {fetches} from "../API/fetches";
+import {useState} from 'react';
+import {StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {fetcher} from "../API/Fetcher";
 
 export default function () {
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
-    const [pressed, setPressed] = useState(false);
     const onPress = async () => {
-        const data = await fetches.login(userName, password);
+        const data = await fetcher.login(userName, password);
+        console.log(data.message);
     };
-    useEffect(() => {
-        if (pressed) {
-            const requestOptions = {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({userName: userName, password: password})
-            };
-            fetch('http://localhost:5000/login', requestOptions)
-                .then(response => response.json());
-        }
-    }, [userName, password, pressed]);
 
     return (
         <View style={styles.Wrapper}>

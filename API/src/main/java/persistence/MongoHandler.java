@@ -44,6 +44,6 @@ public class MongoHandler extends MongoConnectionHandler {
     }
 
     public boolean userExists(String userName) {
-        return this.getUsers().find(eq(fieldName, userName)).first() != null;
+        return this.getUsers().find(eq("userName", userName)).first() != null;
     }
 }
