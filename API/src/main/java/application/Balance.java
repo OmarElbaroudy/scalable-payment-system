@@ -23,7 +23,7 @@ public class Balance extends HttpServlet {
             User user = handler.getUserById(req.getHeader("userId"));
             String pubKey = user.getPubKey();
 
-            API.getBalance(resp, pubKey);
+            API.getBalance(req, resp, pubKey);
         } catch (Exception e) {
             e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

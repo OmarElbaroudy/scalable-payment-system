@@ -3,17 +3,21 @@ package application;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.rabbitmq.client.*;
+import jakarta.servlet.AsyncContext;
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import persistence.MongoHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +27,7 @@ public class API {
     private static final String exchangeName = "BLOCKCHAIN";
     private static final String queueName = "API";
     private static HashMap<String, HttpServletResponse> mp;
+    private static HashMap<String, AsyncContext> asyncMp;
     private static Channel channel;
     private static Connection connection;
     private static Server server;
@@ -53,6 +58,8 @@ public class API {
 
                         try {
                             HttpServletResponse resp = mp.get(key);
+                            AsyncContext async = asyncMp.get(key);
+
                             resp.setContentType("application/json");
                             resp.setStatus(HttpServletResponse.SC_OK);
 
@@ -61,7 +68,10 @@ public class API {
 
                             PrintWriter out = resp.getWriter();
                             out.print(json);
+                            async.complete();
+
                             mp.remove(key);
+                            asyncMp.remove(key);
                         } catch (Exception e) {
                             e.printStackTrace();
                             HttpServletResponse resp = mp.get(key);
@@ -73,8 +83,9 @@ public class API {
                 });
     }
 
-    public static void addResponse(String key, HttpServletResponse resp) {
+    public static void addResponse(String key, HttpServletResponse resp, AsyncContext async) {
         mp.put(key, resp);
+        asyncMp.put(key, async);
     }
 
     public static void main(String[] args) throws Exception {
@@ -82,8 +93,9 @@ public class API {
     }
 
     public static void start() throws Exception {
-        server = new Server();
+        server = new Server(new QueuedThreadPool());
         mp = new HashMap<>();
+        asyncMp = new HashMap<>();
 
         ServerConnector connector = new ServerConnector(server);
         connector.setPort(3000);
@@ -91,7 +103,6 @@ public class API {
 
         ServletContextHandler context = new ServletContextHandler();
 
-        // Add the filter, and then use the provided FilterHolder to configure it
         FilterHolder cors = context.addFilter(CrossOriginFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
         cors.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
         cors.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
@@ -153,7 +164,7 @@ public class API {
         out.print(jsonObject);
     }
 
-    public static void getBalance(HttpServletResponse resp, String pubKey) throws IOException {
+    public static void getBalance(HttpServletRequest req, HttpServletResponse resp, String pubKey) throws IOException {
         Map<String, Object> mp = new HashMap<>();
         mp.put("task", "getBalance");
 
@@ -170,7 +181,8 @@ public class API {
         String json = jsonObject.toString();
         channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, json.getBytes());
 
-        addResponse(pubKey, resp);
+        AsyncContext async = req.startAsync();
+        addResponse(pubKey, resp, async);
     }
 
 
