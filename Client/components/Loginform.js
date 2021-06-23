@@ -2,13 +2,35 @@ import * as React from 'react';
 import {useState} from 'react';
 import {StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {fetcher} from "../API/Fetcher";
+import Profile from "./Profile";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function () {
+export default function ({navigation}) {
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
+    const [message, setMessage] = useState('');
+    const storeData = async (property, value) => {
+        try {
+            await AsyncStorage.setItem(property, value);
+        } catch (e) {
+            console.log(e)
+        }
+    }
     const onPress = async () => {
-        const data = await fetcher.login(userName, password);
-        console.log(data.message);
+        try {
+            const data = await fetcher.login(userName, password);
+            console.log(data.message);
+            if (data.message === "invalid") {
+                setMessage("invalid username or password");
+            } else {
+                await storeData("userId", data.userId);
+                await storeData("userName", data.userName);
+                navigation.navigate('Profile');
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
     };
 
     return (
@@ -22,20 +44,20 @@ export default function () {
                        placeholderTextColor='black'
                        onChangeText={(value) => setUserName(value)}
             />
-
             <TextInput style={styles.textinput}
                        underlineColorAndroid="transparent"
                        placeholder="Enter Password"
                        placeholderTextColor='black'
                        autoCapitalize="none"
-                       secureTextEntry="true"
+                       keyboardType="default"
+                       secureTextEntry={true}
                        onChangeText={(value) => setPassword(value)}
             />
 
             <TouchableOpacity onPress={onPress} style={styles.ButtonStyle}>
                 <Text style={styles.TextStyle}> Login </Text>
             </TouchableOpacity>
-
+            <Text style={styles.TextStyle2}>{message}</Text>
         </View>
 
 
@@ -45,9 +67,10 @@ export default function () {
 
 
 const styles = StyleSheet.create({
+
     Wrapper: {
         backgroundColor: '#9999FF',
-        padding: 80
+        padding: 90,
     },
     textinput: {
         fontSize: 18,
@@ -71,6 +94,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         fontSize: 28
+    },
+    TextStyle2: {
+        color: 'white',
+        flexDirection: "row",
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: 12
     },
     ButtonStyle: {
         padding: 10,

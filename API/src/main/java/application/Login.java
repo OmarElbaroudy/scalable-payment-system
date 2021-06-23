@@ -41,12 +41,13 @@ public class Login extends HttpServlet {
 
             PrintWriter out = resp.getWriter();
 
-            if(user == null){
+            if (user == null) {
                 json.addProperty("message", "invalid");
 
-            }else{
+            } else {
                 json.addProperty("message", "valid");
                 json.addProperty("userId", user.getUserId());
+                json.addProperty("userName", user.getUserName());
 
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("server", "API");

@@ -1,13 +1,12 @@
 import * as React from 'react';
 import {useState} from 'react';
-import {fetcher} from "../API/Fetcher";
 import {StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {fetcher} from "../API/Fetcher";
 
 export default function () {
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
     const onPress = async () => {
-        console.log(userName + " " + password)
         const data = await fetcher.register(userName, password);
         console.log("data is " + data.message);
     };
@@ -28,7 +27,8 @@ export default function () {
                        placeholder="Enter Password"
                        placeholderTextColor='black'
                        autoCapitalize="none"
-                       secureTextEntry="true"
+                       keyboardType="default"
+                       secureTextEntry={true}
                        onChangeText={(value) => setPassword(value)}
             />
 
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 
     Wrapper: {
         backgroundColor: '#9999FF',
-        padding: 80
+        padding: 60
     },
     textinput: {
         fontSize: 18,
