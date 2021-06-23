@@ -1,6 +1,7 @@
 package application;
 
 
+import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,13 @@ public class Balance extends HttpServlet {
             User user = handler.getUserById(req.getHeader("userId"));
             String pubKey = user.getPubKey();
 
+            JsonObject jsonObject = new JsonObject();
+
+            jsonObject.addProperty("server", "API");
+            jsonObject.addProperty("id", user.getUserId());
+            jsonObject.addProperty("task", "balance");
+
+            API.log(jsonObject);
             API.getBalance(req, resp, pubKey);
         } catch (Exception e) {
             e.printStackTrace();

@@ -47,6 +47,12 @@ public class Login extends HttpServlet {
             }else{
                 json.addProperty("message", "valid");
                 json.addProperty("userId", user.getUserId());
+
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("server", "API");
+                jsonObject.addProperty("id", user.getUserId());
+                jsonObject.addProperty("task", "login");
+                API.log(jsonObject);
             }
 
             out.print(json);

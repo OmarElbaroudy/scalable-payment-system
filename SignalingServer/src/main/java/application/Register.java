@@ -49,9 +49,16 @@ public class Register extends HttpServlet {
                 json.addProperty("parentId", parent[0]);
             }
 
-            int cnt = handler.getNumberOfNodes();
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("server", "signaling");
+            jsonObject.addProperty("id", nodeId);
+            jsonObject.addProperty("task", "register");
+            jsonObject.addProperty("committee", committeeQueue);
 
-            if (cnt == 1) {
+            SignalingServer.log(json);
+
+            int cnt = handler.getNumberOfNodes();
+            if (cnt == Integer.parseInt(System.getenv("TOTAL_NUMBER_OF_NODES"))) {
                 SignalingServer.segment();
             }
 

@@ -35,6 +35,15 @@ public class Transfer extends HttpServlet {
             User receiver = handler.getUser(userName);
             String recKey = receiver.getPubKey();
 
+            JsonObject json = new JsonObject();
+            json.addProperty("server", "API");
+            json.addProperty("id", user.getUserId());
+            json.addProperty("to", receiver.getUserId());
+            json.addProperty("task", "transfer");
+            json.addProperty("amount", amount);
+
+            API.log(json);
+
             API.createTransaction(resp, recKey, amount, privKey);
 
         } catch (Exception e) {

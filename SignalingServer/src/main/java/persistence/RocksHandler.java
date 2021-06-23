@@ -1,6 +1,5 @@
 package persistence;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import org.rocksdb.*;
 
 import java.util.ArrayList;
@@ -15,16 +14,13 @@ public class RocksHandler {
 
     private final RocksDB db;
     private final DBOptions options;
-    private final ColumnFamilyOptions cfOpts;
     private final List<ColumnFamilyHandle> cfHandles;
     private final ColumnFamilyHandle committees;
     private final ColumnFamilyHandle distribution;
 
     public RocksHandler() throws RocksDBException {
-        String path = "/home/baroudy/Projects/Bachelor/payment-system/.env";
-        Dotenv dotenv = Dotenv.configure().directory(path).load();
-        String dbPath = dotenv.get("ROCKSDB_PATH") + "signalingServer";
-        cfOpts = new ColumnFamilyOptions().optimizeUniversalStyleCompaction();
+        String dbPath = System.getenv("ROCKSDB_PATH") + "signalingServer";
+        ColumnFamilyOptions cfOpts = new ColumnFamilyOptions().optimizeUniversalStyleCompaction();
 
         List<ColumnFamilyDescriptor> cfDescriptors = Arrays.asList(
                 new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, cfOpts),

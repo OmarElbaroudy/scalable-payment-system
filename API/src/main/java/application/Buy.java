@@ -2,7 +2,6 @@ package application;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,18 +24,28 @@ public class Buy extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        User user = handler.getUserById(req.getHeader("userId"));
-        String recKey = user.getPubKey();
+        try{
+            User user = handler.getUserById(req.getHeader("userId"));
+            String recKey = user.getPubKey();
 
-        String body = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-        JsonObject jsonObj = JsonParser.parseString(body).getAsJsonObject();
+            String body = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+            JsonObject jsonObj = JsonParser.parseString(body).getAsJsonObject();
 
-        double amount = jsonObj.get("amount").getAsDouble();
+            double amount = jsonObj.get("amount").getAsDouble();
 
-        String path = "/home/baroudy/Projects/Bachelor/payment-system";
-        Dotenv dotenv = Dotenv.configure().directory(path).load();
-        String privKey = Objects.requireNonNull(dotenv.get("GENESIS_PRIVATE_KEY"));
+            String privKey = Objects.requireNonNull(System.getenv("GENESIS_PRIVATE_KEY"));
 
-        API.createTransaction(resp, recKey, amount, privKey);
+            JsonObject json = new JsonObject();
+            json.addProperty("server", "API");
+            json.addProperty("id", user.getUserId());
+            json.addProperty("task", "buy");
+            json.addProperty("amount", amount);
+
+            API.log(json);
+            API.createTransaction(resp, recKey, amount, privKey);
+        }catch (Exception e){
+            e.printStackTrace();
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
     }
 }

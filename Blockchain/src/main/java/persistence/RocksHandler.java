@@ -1,6 +1,5 @@
 package persistence;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.lang3.SerializationUtils;
 import org.rocksdb.*;
 import persistence.models.Block;
@@ -19,16 +18,13 @@ public class RocksHandler {
     private final String id;
     private final RocksDB db;
     private final DBOptions options;
-    private final ColumnFamilyOptions cfOpts;
     private final List<ColumnFamilyHandle> cfHandles;
     private final ColumnFamilyHandle committees;
     private final ColumnFamilyHandle utxos;
 
     public RocksHandler(String id) throws RocksDBException {
-        String path = "/home/baroudy/Projects/Bachelor/payment-system";
-        Dotenv dotenv = Dotenv.configure().directory(path).load();
-        String dbPath = dotenv.get("ROCKSDB_PATH") + (this.id = id);
-        cfOpts = new ColumnFamilyOptions().optimizeUniversalStyleCompaction();
+        String dbPath = System.getenv("ROCKSDB_PATH") + (this.id = id);
+        ColumnFamilyOptions cfOpts = new ColumnFamilyOptions().optimizeUniversalStyleCompaction();
 
         List<ColumnFamilyDescriptor> cfDescriptors = Arrays.asList(
                 new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, cfOpts),
@@ -175,5 +171,9 @@ public class RocksHandler {
         }
         options.close();
         db.close();
+    }
+
+    public String getId() {
+        return id;
     }
 }

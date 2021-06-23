@@ -1,6 +1,5 @@
 package services;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import persistence.RocksHandler;
 
 import java.util.Objects;
@@ -13,17 +12,12 @@ public class RegistrationServices {
     }
 
     public static String getPrimaryQueue() {
-        String path = "/home/baroudy/Projects/Bachelor/payment-system/.env";
-        Dotenv dotenv = Dotenv.configure().directory(path).load();
-
-        return dotenv.get("PRIMARY_QUEUE_ID");
+        return System.getenv("PRIMARY_QUEUE_ID");
 
     }
 
     public static String getCommitteeQueue(String nodeId, RocksHandler handler) {
-        String path = "/home/baroudy/Projects/Bachelor/payment-system/.env";
-        Dotenv dotenv = Dotenv.configure().directory(path).load();
-        int committeeSize = Integer.parseInt(Objects.requireNonNull(dotenv.get("COMMITTEE_SIZE")));
+        int committeeSize = Integer.parseInt(Objects.requireNonNull(System.getenv("COMMITTEE_SIZE")));
         int committeeId = 1;
         while (true) {
             int currentSize = handler.getCommitteeSize(String.valueOf(committeeId));

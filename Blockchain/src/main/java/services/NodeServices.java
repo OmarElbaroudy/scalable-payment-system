@@ -43,6 +43,17 @@ public class NodeServices {
         System.out.println(t == null ? "unable to create transaction" :
                 "created transaction successfully");
 
+        if(t != null){
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("server", "node");
+            jsonObject.addProperty("id", nodeId);
+            jsonObject.addProperty("task", "createTransaction");
+            jsonObject.addProperty("recKey", recKey);
+            jsonObject.addProperty("amount", amount);
+
+            log(jsonObject);
+        }
+
         //validate transaction all over committee
         String jsonString = gson.toJson(t);
         Map<String, Object> mp = new HashMap<>();
@@ -68,6 +79,15 @@ public class NodeServices {
         System.out.println("transaction is valid => " + valid);
         if (valid) {
             transactions.add(t);
+
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("server", "node");
+            jsonObject.addProperty("id", nodeId);
+            jsonObject.addProperty("task", "validateTransaction");
+            jsonObject.addProperty("recKey", t.getOutput().getScriptPublicKey());
+            jsonObject.addProperty("amount", t.getOutput().getAmount());
+
+            log(jsonObject);
         }
 
         Map<String, Object> mp = new HashMap<>();
@@ -95,6 +115,14 @@ public class NodeServices {
         double amount = TransactionServices.getBalance(arr, rocksHandler);
 
         System.out.println("amount is " + amount);
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("server", "node");
+        jsonObject.addProperty("id", nodeId);
+        jsonObject.addProperty("task", "getBalance");
+        jsonObject.addProperty("amount", amount);
+
+        log(jsonObject);
 
         json = new JsonObject();
         json.addProperty("amount", amount);
@@ -136,6 +164,14 @@ public class NodeServices {
         Block b = BlockServices.mineBlock(transactions, mongoHandler, rocksHandler);
         System.out.println(b.getTransactions().getTransactions().size());
 
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("server", "node");
+        jsonObject.addProperty("id", nodeId);
+        jsonObject.addProperty("task", "mine");
+        jsonObject.addProperty("block", b.getIdx());
+
+        log(jsonObject);
+
         //committee validate block
         Map<String, Object> mp = new HashMap<>();
         mp.put("task", "validateBlock");
@@ -150,19 +186,7 @@ public class NodeServices {
         String block = gson.toJson(b);
         channel.basicPublish(exchangeName, committeeQueue, props, block.getBytes());
 
-//        if (!rem.isEmpty()) {
-//            mp.put("task", "cleanTransactions");
-//
-//            props = new AMQP.BasicProperties().
-//                    builder().
-//                    headers(mp).
-//                    contentType("application/json").
-//                    build();
-//
-//            byte[] transactions = gson.toJson(rem).getBytes();
-//            channel.basicPublish(exchangeName, committeeQueue, props, transactions);
-//        }
-
+        //TODO call clean
 
         //update utxos
         mp.put("task", "updateUTXO");
@@ -175,13 +199,38 @@ public class NodeServices {
         channel.basicPublish(exchangeName, primaryQueue, props, block.getBytes());
     }
 
+    private void clean(List<Transaction> rem) throws Exception{
+        if (!rem.isEmpty()) {
+            Map<String, Object> mp = new HashMap<>();
+            mp.put("task", "cleanTransactions");
 
-    public void validateBlock(byte[] body) {
+            AMQP.BasicProperties props = new AMQP.BasicProperties().
+                    builder().
+                    headers(mp).
+                    contentType("application/json").
+                    build();
+
+            byte[] transactions = gson.toJson(rem).getBytes();
+            channel.basicPublish(exchangeName, committeeQueue, props, transactions);
+        }
+    }
+
+
+    public void validateBlock(byte[] body) throws Exception {
         System.out.println("node " + nodeId + " validating block");
         String blockJson = new String(body);
         Block block = gson.fromJson(blockJson, Block.class);
         List<Transaction> rem = BlockServices.validateAndAddBlock(block, mongoHandler);
         System.out.println(rem == null ? "block is invalid" : "block is valid");
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("server", "node");
+        jsonObject.addProperty("id", nodeId);
+        jsonObject.addProperty("task", "validateBlock");
+        jsonObject.addProperty("block", block.getIdx());
+
+        log(jsonObject);
+
         if (rem != null) transactions.removeAll(rem);
     }
 
@@ -193,6 +242,13 @@ public class NodeServices {
         Block block = gson.fromJson(blockJson, Block.class);
         rocksHandler.update(block);
 
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("server", "node");
+        jsonObject.addProperty("id", nodeId);
+        jsonObject.addProperty("task", "updateUTXO");
+
+        log(jsonObject);
+
         Map<String, Object> mp = new HashMap<>();
         mp.put("task", "blockValidated");
 
@@ -203,9 +259,9 @@ public class NodeServices {
                         contentType("application/json").
                         build();
 
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("nodeId", nodeId);
-        String jsonString = jsonObject.toString();
+        JsonObject json = new JsonObject();
+        json.addProperty("nodeId", nodeId);
+        String jsonString = json.toString();
 
         channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, jsonString.getBytes());
     }
@@ -215,6 +271,14 @@ public class NodeServices {
         System.out.println("node " + nodeId + " sending Genesis");
         Block b = mongoHandler.getBlock(1);
         String json = gson.toJson(b);
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("server", "node");
+        jsonObject.addProperty("id", nodeId);
+        jsonObject.addProperty("task", "sendGenesis");
+        jsonObject.addProperty("senderId", senderId);
+
+        log(jsonObject);
 
         Map<String, Object> mp = new HashMap<>();
         mp.put("task", "recGenesis");
@@ -230,9 +294,16 @@ public class NodeServices {
     }
 
 
-    public void recGenesis(byte[] body) {
+    public void recGenesis(byte[] body) throws Exception{
         String jsonString = new String(body);
         Block b = gson.fromJson(jsonString, Block.class);
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("server", "node");
+        jsonObject.addProperty("id", nodeId);
+        jsonObject.addProperty("task", "recGenesis");
+
+        log(jsonObject);
 
         System.out.println("node " + nodeId + " received genesis successfully");
 
@@ -254,6 +325,14 @@ public class NodeServices {
         Block b = mongoHandler.getBlock(1);
         String json = gson.toJson(b);
 
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("server", "node");
+        jsonObject.addProperty("id", nodeId);
+        jsonObject.addProperty("task", "sendGenesisUTXO");
+        jsonObject.addProperty("senderId", senderId);
+
+        log(jsonObject);
+
         Map<String, Object> mp = new HashMap<>();
         mp.put("task", "recGenesisUTXO");
 
@@ -267,11 +346,28 @@ public class NodeServices {
         channel.basicPublish(exchangeName, senderId, props, json.getBytes());
     }
 
-    public void recGenesisUTXO(byte[] body){
+    public void recGenesisUTXO(byte[] body) throws Exception{
         String jsonString = new String(body);
         Block b = gson.fromJson(jsonString, Block.class);
 
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("server", "node");
+        jsonObject.addProperty("id", nodeId);
+        jsonObject.addProperty("task", "recGenesisUTXO");
+
+        log(jsonObject);
+
         rocksHandler.update(b);
+    }
+
+    private void log(JsonObject json) throws Exception {
+        AMQP.BasicProperties props =
+                new AMQP.BasicProperties().
+                        builder().
+                        contentType("application/json").
+                        build();
+
+        channel.basicPublish(exchangeName, "Logger", props, json.toString().getBytes());
     }
 
     public void exec(String task, String senderId, byte[] body) throws Exception {

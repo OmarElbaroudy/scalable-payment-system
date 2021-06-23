@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="603.0" prefWidth="736.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.controllers.CommitteesController">
+    <children>
+        <Label text="Committees Transactions Distribution" textAlignment="CENTER">
+         <font>
+            <Font size="24.0" />
+         </font></Label>
+        <Pane prefHeight="589.0" prefWidth="744.0" />
+        <HBox alignment="CENTER" prefHeight="30.0" prefWidth="736.0">
+            <children>
+                <Button fx:id="loggerButton" mnemonicParsing="false" onAction="#switchToLoggerScene" text="Logger" />
+                <Button fx:id="statsButton" mnemonicParsing="false" onAction="#switchToStatsScene" text="Stats" />
+                <Button fx:id="committeesButton" mnemonicParsing="false" onAction="#switchToCommitteesScene" text="committees" />
+                <Button fx:id="NodesButton" mnemonicParsing="false" onAction="#switchToNodesScene" text="Nodes " />
+            </children>
+        </HBox>
+    </children>
+</VBox>

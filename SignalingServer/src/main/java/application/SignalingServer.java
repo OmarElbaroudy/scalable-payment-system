@@ -1,5 +1,6 @@
 package application;
 
+import com.google.gson.JsonObject;
 import com.rabbitmq.client.*;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -84,6 +85,16 @@ public class SignalingServer {
         channel.close();
         connection.close();
         server.stop();
+    }
+
+    public static void log(JsonObject json) throws Exception {
+        AMQP.BasicProperties props =
+                new AMQP.BasicProperties().
+                        builder().
+                        contentType("application/json").
+                        build();
+
+        channel.basicPublish(exchangeName, "Logger", props, json.toString().getBytes());
     }
 
     public static void main(String[] args) throws Exception {

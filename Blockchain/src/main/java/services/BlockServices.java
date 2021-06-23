@@ -1,6 +1,5 @@
 package services;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.codec.digest.DigestUtils;
 import persistence.MongoHandler;
 import persistence.RocksHandler;
@@ -17,13 +16,11 @@ public class BlockServices {
     public static Block mineBlock(List<Transaction> transactions, MongoHandler handler, RocksHandler rocksHandler) {
         Block lst = getLastBlock(handler);
         String prevHash = hash(Objects.requireNonNull(lst).toString());
-        String path = "/home/baroudy/Projects/Bachelor/payment-system";
-        Dotenv dotenv = Dotenv.configure().directory(path).load();
 
         int nonce = 0;
         int idx = lst.getIdx() + 1;
         int difficulty = Integer.parseInt(
-                Objects.requireNonNull(dotenv.get("DIFFICULTY")));
+                Objects.requireNonNull(System.getenv("DIFFICULTY")));
 
         List<Transaction> ts = revalidateTransactions(transactions, rocksHandler);
 
@@ -107,10 +104,8 @@ public class BlockServices {
         Block lst = getLastBlock(handler);
         if (lst == null) return null; //Genesis
 
-        String path = "/home/baroudy/Projects/Bachelor/payment-system";
-        Dotenv dotenv = Dotenv.configure().directory(path).load();
         int difficulty = Integer.parseInt(
-                Objects.requireNonNull(dotenv.get("DIFFICULTY")));
+                Objects.requireNonNull(System.getenv("DIFFICULTY")));
 
         boolean flag = lst.getIdx() == block.getIdx() - 1;
         String hashLast = hash(lst.toString());
@@ -133,12 +128,9 @@ public class BlockServices {
     }
 
     public static Block generateGenesis(MongoHandler handler, RocksHandler rocksHandler, boolean updateRocks) {
-        String path = "/home/baroudy/Projects/Bachelor/payment-system";
-        Dotenv dotenv = Dotenv.configure().directory(path).load();
-
-        String prevHash = dotenv.get("GENESIS_PREVIOUS_HASH");
-        int nonce = Integer.parseInt(Objects.requireNonNull(dotenv.get("GENESIS_NONCE")));
-        String pubKey = dotenv.get("GENESIS_PUBLIC_KEY");
+        String prevHash = System.getenv("GENESIS_PREVIOUS_HASH");
+        int nonce = Integer.parseInt(Objects.requireNonNull(System.getenv("GENESIS_NONCE")));
+        String pubKey = System.getenv("GENESIS_PUBLIC_KEY");
 
         MetaData data = new MetaData(1, prevHash, nonce, 0);
 

@@ -17,7 +17,6 @@ import persistence.MongoHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -183,6 +182,16 @@ public class API {
 
         AsyncContext async = req.startAsync();
         addResponse(pubKey, resp, async);
+    }
+
+    public static void log(JsonObject json) throws Exception {
+        AMQP.BasicProperties props =
+                new AMQP.BasicProperties().
+                        builder().
+                        contentType("application/json").
+                        build();
+
+        channel.basicPublish(exchangeName, "Logger", props, json.toString().getBytes());
     }
 
 

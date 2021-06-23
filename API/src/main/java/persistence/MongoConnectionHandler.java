@@ -6,7 +6,6 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import persistence.models.User;
@@ -33,9 +32,7 @@ public class MongoConnectionHandler {
      * @return mongodb uri connection String
      */
     private ConnectionString getConnectionString() {
-        String path = "/home/baroudy/Projects/Bachelor/payment-system";
-        Dotenv dotenv = Dotenv.configure().directory(path).load();
-        return new ConnectionString(Objects.requireNonNull(dotenv.get("MONGODB_URI")));
+        return new ConnectionString(Objects.requireNonNull(System.getenv("MONGODB_URI")));
     }
 
     /**

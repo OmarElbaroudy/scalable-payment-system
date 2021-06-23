@@ -8,19 +8,21 @@
 /httpRequests/
 #.idea folder
 /.idea
-#target folder
+#target folders
 /Blockchain/target
 /SignalingServer/target
 /API/target
+/Demo/target
 #tmp folder (rocksDB)
 /Blockchain/src/main/java/tmp
 #enviroment file
-.env
-#iml file
+vars.env
+#iml files
 /Blockchain/Blockchain.iml
 /SignalingServer/SignalingServer.iml
 /API/API.iml
 /Client/client.iml
+/Demo/Demo.iml
 #node modules
 Client/node_modules
 Client/package-lock.json

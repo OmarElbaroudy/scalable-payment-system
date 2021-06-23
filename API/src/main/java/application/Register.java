@@ -52,6 +52,11 @@ public class Register extends HttpServlet {
 
             }else{
                 json.addProperty("message", "you are now registered!");
+
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("server", "API");
+                jsonObject.addProperty("id", newUser.getUserId());
+                jsonObject.addProperty("task", "register");
                 handler.saveUser(newUser);
             }
 
