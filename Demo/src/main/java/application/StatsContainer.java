@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 public class StatsContainer {
+    public static final TreeMap<Integer, ArrayList<String>> mp = new TreeMap<>();
     private static final TreeMap<String, Service> nodes = new TreeMap<>();
     private static final TreeMap<Integer, Service> committees = new TreeMap<>();
-    private static final TreeMap<Integer, ArrayList<String>> mp = new TreeMap<>();
     private static final TreeMap<String, Integer> committeeOfNode = new TreeMap<>();
     private static int loginCnt;
     private static int registerCnt;
@@ -23,7 +23,7 @@ public class StatsContainer {
     private static int transferCnt;
     private static int nodesCnt;
     private static int committeesCnt;
-    private static int currentBlockIdx;
+    private static int currentBlockIdx = 1;
 
     public static int getLoginCnt() {
         return loginCnt;
@@ -145,7 +145,7 @@ public class StatsContainer {
             text.setFill(Color.MEDIUMSEAGREEN);
             LoggerController.log(text, "signaling");
 
-            text.setText(" Node " + id + " is up and registered");
+            text.setText(" Node " + id + " is up and registered @ " + getTime());
             LoggerController.log(text, id);
             return;
         }
@@ -180,7 +180,7 @@ public class StatsContainer {
         if ("blockValidated".equals(json.get("task").getAsString())) {
             String id = json.get("id").getAsString();
             Text text = new Text("node " + id +
-                    " has received and validated the last block mined " + getTime());
+                    " has received and validated the last block mined @ " + getTime());
             text.setFill(Color.NAVY);
             LoggerController.log(text, "signaling");
             return;
@@ -189,7 +189,7 @@ public class StatsContainer {
         if ("mine".equals(json.get("task").getAsString())) {
             String id = json.get("id").getAsString();
             Text text = new Text("Electing node " + id +
-                    " to mine the next block for it's committee" + getTime());
+                    " to mine the next block for it's committee @ " + getTime());
             text.setFill(Color.TOMATO);
             LoggerController.log(text, "signaling");
         }
@@ -365,7 +365,7 @@ public class StatsContainer {
                 break;
             }
 
-            case "buy":{
+            case "buy": {
                 String id = json.get("id").getAsString();
                 String amount = json.get("amount").getAsString();
                 Text text = new Text("user " + id + " requested to buy " +
@@ -376,7 +376,7 @@ public class StatsContainer {
                 break;
             }
 
-            case "login":{
+            case "login": {
                 String id = json.get("id").getAsString();
                 Text text = new Text("user " + id + " requested to login @ " +
                         getTime());
@@ -386,7 +386,7 @@ public class StatsContainer {
                 break;
             }
 
-            case "register":{
+            case "register": {
                 String id = json.get("id").getAsString();
                 Text text = new Text("user " + id + " requested to register @ " +
                         getTime());
@@ -396,7 +396,7 @@ public class StatsContainer {
                 break;
             }
 
-            case "sell":{
+            case "sell": {
                 String id = json.get("id").getAsString();
                 String amount = json.get("amount").getAsString();
                 Text text = new Text("user " + id + " requested to sell " +
@@ -408,12 +408,12 @@ public class StatsContainer {
                 break;
             }
 
-            case "transfer":{
+            case "transfer": {
                 String id = json.get("id").getAsString();
                 String amount = json.get("amount").getAsString();
                 String to = json.get("to").getAsString();
                 Text text = new Text("user " + id + " requested to transfer " +
-                        amount + " to " + to + " @ "  + getTime());
+                        amount + " to " + to + " @ " + getTime());
                 text.setFill(Color.DARKGOLDENROD);
                 LoggerController.log(text, "API");
                 buyCnt++;
