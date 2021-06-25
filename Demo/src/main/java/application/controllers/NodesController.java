@@ -5,7 +5,6 @@ import java.io.IOException;
 
 public class NodesController {
 
-
     public void switchToLoggerScene() throws IOException {
         App.setRoot("logger");
     }

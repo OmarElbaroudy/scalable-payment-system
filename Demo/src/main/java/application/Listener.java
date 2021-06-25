@@ -14,6 +14,8 @@ public class Listener {
 
     public static void listen() throws Exception {
         initRabbit();
+        LoggerController.mp.put("API", LoggerController.APILoggerQueue);
+        LoggerController.mp.put("signaling", LoggerController.signalingLoggerQueue);
 
         channel.basicConsume(QUEUE_NAME, false, QUEUE_NAME,
                 new DefaultConsumer(channel) {
@@ -29,16 +31,11 @@ public class Listener {
                         String s = new String(body);
                         JsonObject json = JsonParser.parseString(s).getAsJsonObject();
 
-                        update(json);
+                        StatsContainer.update(json);
 
                         channel.basicAck(deliveryTag, false);
                     }
                 });
-    }
-
-    private static void update(JsonObject json) {
-        StatsContainer.update(json);
-        LoggerController.update(json);
     }
 
     private static void initRabbit() throws Exception {
