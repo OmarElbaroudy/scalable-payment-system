@@ -13,22 +13,23 @@ import java.util.Map;
 public class SegmentationServices {
     private final Channel channel;
     private final RocksHandler handler;
-    private final String exchangeName = "BLOCKCHAIN";
     private final CoordinationServices services;
+    private final int committeeSize;
     private int numberOfCommittees;
     private int transactionNumber = 0;
     private boolean mining = false, initialized = false;
     private int curCommittee = 0;
 
-    public SegmentationServices(RocksHandler handler, Channel channel) throws Exception {
+    public SegmentationServices(RocksHandler handler, Channel channel) {
         this.handler = handler;
         this.channel = channel;
         services = new CoordinationServices(handler);
+        committeeSize = Integer.parseInt(System.getenv("COMMITTEE_SIZE"));
     }
 
     private void createTransaction(byte[] body) throws Exception {
         curCommittee = curCommittee % numberOfCommittees + 1;
-        String nodeId = services.getRandomNodeId(String.valueOf(curCommittee));
+        int nodeId = (curCommittee - 1) * committeeSize + 1;
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("server", "signaling");
@@ -47,7 +48,7 @@ public class SegmentationServices {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish("", nodeId, props, body);
+        channel.basicPublish("", String.valueOf(nodeId), props, body);
     }
 
     private void getBalance(byte[] body) throws Exception {
@@ -101,8 +102,6 @@ public class SegmentationServices {
     }
 
     private void blockValidated(byte[] body) throws Exception {
-        if (!mining) return;
-
         String s = new String(body);
         JsonObject json = JsonParser.parseString(s).getAsJsonObject();
         String nodeId = json.get("nodeId").getAsString();
@@ -112,11 +111,8 @@ public class SegmentationServices {
         jsonObject.addProperty("id", nodeId);
         jsonObject.addProperty("task", "blockValidated");
 
-        System.out.println(nodeId + " validated block");
-
         SignalingServer.log(jsonObject);
-
-        mining = services.isMining(nodeId, false);
+        if (mining) mining = services.isMining(nodeId, false);
     }
 
     private void nodeRegistered() throws Exception {
@@ -131,6 +127,7 @@ public class SegmentationServices {
     private void segment() throws Exception {
         int limit = Integer.parseInt(System.getenv("TRANSACTION_NUMBER"));
         limit *= Integer.parseInt(System.getenv("COMMITTEE_SIZE"));
+
         if (!mining && transactionNumber >= limit) {
             transactionNumber = 0;
             mining = true;
@@ -164,17 +161,23 @@ public class SegmentationServices {
         transactionNumber++;
     }
 
-    private void incTransactionsByCommittee(byte[] body) {
-        String committeeId = new String(body);
-        mining = services.isMining(committeeId, true);
+    private void validateCommittee(byte[] body) {
+        String s = new String(body);
+        JsonObject json = JsonParser.parseString(s).getAsJsonObject();
+        String id = json.get("committeeId").getAsString();
+        mining = services.isMining(id, true);
     }
 
     private void init() throws Exception {
         System.out.println("initialized");
         numberOfCommittees = handler.getNumberOfCommittees();
+        int totalNumberOfNodes = handler.getNumberOfNodes();
+
+        CoordinationServices.setTotalNumberOfCommittees(numberOfCommittees);
+        CoordinationServices.setTotalNumberOfNodes(totalNumberOfNodes);
+
         for (int i = 1; i <= numberOfCommittees; i++) {
             String nodeId = services.getRandomNodeId(String.valueOf(i));
-            System.out.println("electing node" + nodeId + " to generate genesis");
 
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("server", "signaling");
@@ -210,7 +213,7 @@ public class SegmentationServices {
 
             case "incTransactions" -> incTransactions();
 
-            case "validateCommittee" -> incTransactionsByCommittee(body);
+            case "validateCommittee" -> validateCommittee(body);
 
             case "nodeRegistered" -> nodeRegistered();
         }

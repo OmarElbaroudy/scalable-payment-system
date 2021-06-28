@@ -2,20 +2,29 @@ package services;
 
 import persistence.RocksHandler;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class CoordinationServices {
 
-    private final HashSet<String> validatedBlocks;
-    private final int totalNumberOfNodes;
+    private static int totalNumberOfNodes;
+    private static int totalNumberOfCommittees;
+    private final HashMap<String, Integer> validatedBlocks;
+    private final HashSet<String> validatedCommittees;
     private final RocksHandler handler;
-    private int committeeNodes;
 
     public CoordinationServices(RocksHandler handler) {
-        committeeNodes = 0;
         this.handler = handler;
-        validatedBlocks = new HashSet<>();
-        totalNumberOfNodes = handler.getNumberOfNodes();
+        validatedBlocks = new HashMap<>();
+        validatedCommittees = new HashSet<>();
+    }
+
+    public static void setTotalNumberOfNodes(int totalNumberOfNodes) {
+        CoordinationServices.totalNumberOfNodes = totalNumberOfNodes;
+    }
+
+    public static void setTotalNumberOfCommittees(int totalNumberOfCommittees) {
+        CoordinationServices.totalNumberOfCommittees = totalNumberOfCommittees;
     }
 
     public String getRandomNodeId(String committeeId) {
@@ -24,21 +33,19 @@ public class CoordinationServices {
 
     public boolean isMining(String nodeId, boolean isCommittee) {
         if (!isCommittee) {
-            validatedBlocks.add(nodeId);
+            int cnt = validatedBlocks.getOrDefault(nodeId, 0) + 1;
+            validatedBlocks.put(nodeId, cnt);
         } else {
-            if(!validatedBlocks.contains(nodeId)){
-                validatedBlocks.add(nodeId);
-                committeeNodes += handler.getCommitteeSize(nodeId);
-            }
+            validatedCommittees.add(nodeId);
         }
 
-        if (validatedBlocks.size() + committeeNodes < totalNumberOfNodes)
-            return true;
+        int cnt = 0;
+        for (int x : validatedBlocks.values()) cnt += x;
+        cnt += validatedCommittees.size() * totalNumberOfNodes;
+        if (cnt < totalNumberOfNodes * totalNumberOfCommittees) return true;
 
-        committeeNodes = 0;
         validatedBlocks.clear();
+        validatedCommittees.clear();
         return false;
     }
-
-
 }

@@ -4,16 +4,16 @@ import java.util.List;
 import java.util.Objects;
 
 public class Transaction {
-    private List<UTXO> input;
-    private UTXO output, returned;
+    private List<UTXO> input, output;
+    private UTXO returned;
 
-    public Transaction(List<UTXO> input, UTXO output, UTXO returned) {
+    public Transaction(List<UTXO> input, List<UTXO> output, UTXO returned) {
         this.input = input;
         this.output = output;
         this.returned = returned;
     }
 
-    public Transaction(List<UTXO> input, UTXO output) {
+    public Transaction(List<UTXO> input, List<UTXO> output) {
         this.input = input;
         this.output = output;
         this.returned = null;
@@ -30,11 +30,11 @@ public class Transaction {
         this.input = input;
     }
 
-    public UTXO getOutput() {
+    public List<UTXO> getOutput() {
         return output;
     }
 
-    public void setOutput(UTXO output) {
+    public void setOutput(List<UTXO> output) {
         this.output = output;
     }
 
@@ -44,6 +44,19 @@ public class Transaction {
 
     public void setReturned(UTXO returned) {
         this.returned = returned;
+    }
+
+    public String getInputPubKey() {
+        if (input.isEmpty()) return "genesis";
+        return input.get(0).getScriptPublicKey();
+    }
+
+    public int getOutputAmount() {
+        int ret = 0;
+        for (UTXO utxo : getOutput()) {
+            ret += utxo.getAmount();
+        }
+        return ret;
     }
 
     @Override

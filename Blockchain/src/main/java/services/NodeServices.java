@@ -3,7 +3,6 @@ package services;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import persistence.MongoHandler;
@@ -11,7 +10,6 @@ import persistence.RocksHandler;
 import persistence.models.Block;
 import persistence.models.Transaction;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,13 +33,10 @@ public class NodeServices {
         JsonObject json = JsonParser.parseString(s).getAsJsonObject();
         String privKey = json.get("privKey").getAsString();
         String recKey = json.get("recKey").getAsString();
-        double amount = json.get("amount").getAsDouble();
+        int amount = json.get("amount").getAsInt();
 
-        String[] arr = new String[]{privKey};
-        Transaction t = TransactionServices.createTransaction(arr, recKey, amount, rocksHandler);
-
-        System.out.println(t == null ? "unable to create transaction" :
-                "created transaction successfully");
+        Transaction t = TransactionServices.handleTransactionCreation(
+                transactions, privKey, recKey, amount, rocksHandler);
 
         if (t != null) {
             JsonObject jsonObject = new JsonObject();
@@ -72,49 +67,45 @@ public class NodeServices {
 
     public void validateTransaction(byte[] body) throws Exception {
         String s = new String(body);
-        Transaction t = gson.fromJson(s, Transaction.class);
 
-        boolean valid = TransactionServices.validateTransaction(t, rocksHandler);
+        Transaction t = gson.fromJson(s, Transaction.class);
+        boolean valid = TransactionServices.handleTransactionValidation(
+                transactions, t, rocksHandler);
 
         System.out.println("transaction is valid => " + valid);
-        if (valid) {
-            transactions.add(t);
 
+        if (valid) {
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("server", "node");
             jsonObject.addProperty("id", nodeId);
             jsonObject.addProperty("task", "validateTransaction");
-            jsonObject.addProperty("recKey", t.getOutput().getScriptPublicKey());
-            jsonObject.addProperty("amount", t.getOutput().getAmount());
+            jsonObject.addProperty("amount", t.getOutputAmount());
 
             log(jsonObject);
+
+            Map<String, Object> mp = new HashMap<>();
+            mp.put("task", "incTransactions");
+
+            AMQP.BasicProperties props =
+                    new AMQP.BasicProperties().
+                            builder().
+                            headers(mp).
+                            contentType("application/json").
+                            build();
+
+            channel.basicPublish("", "SIGNALING_SERVER", props, null);
         }
-
-        Map<String, Object> mp = new HashMap<>();
-        mp.put("task", "incTransactions");
-
-        AMQP.BasicProperties props =
-                new AMQP.BasicProperties().
-                        builder().
-                        headers(mp).
-                        contentType("application/json").
-                        build();
-
-        channel.basicPublish("", "SIGNALING_SERVER", props, null);
     }
 
 
     public void getBalance(byte[] body) throws Exception {
-        System.out.println("node " + nodeId + " getting balance");
 
         String s = new String(body);
         JsonObject json = JsonParser.parseString(s).getAsJsonObject();
         String pubKey = json.get("pubKey").getAsString();
 
         String[] arr = new String[]{pubKey};
-        double amount = TransactionServices.getBalance(arr, rocksHandler);
-
-        System.out.println("amount is " + amount);
+        int amount = TransactionServices.getBalance(arr, rocksHandler);
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("server", "node");
@@ -142,13 +133,14 @@ public class NodeServices {
     }
 
     public void mine() throws Exception {
-        System.out.println("node " + nodeId + " mining");
-
         if (transactions.isEmpty()) {
             System.out.println("no transactions to be mined");
 
             Map<String, Object> mp = new HashMap<>();
             mp.put("task", "validateCommittee");
+
+            JsonObject json = new JsonObject();
+            json.addProperty("committeeId", committeeQueue);
 
             AMQP.BasicProperties props =
                     new AMQP.BasicProperties().
@@ -157,12 +149,11 @@ public class NodeServices {
                             contentType("application/json").
                             build();
 
-            channel.basicPublish("", "SIGNALING_SERVER", props, committeeQueue.getBytes());
+            channel.basicPublish("", "SIGNALING_SERVER", props, json.toString().getBytes());
             return;
         }
 
         Block b = BlockServices.mineBlock(transactions, mongoHandler, rocksHandler);
-        System.out.println(b.getTransactions().getTransactions().size());
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("server", "node");
@@ -174,25 +165,8 @@ public class NodeServices {
         signalMinedBlock(b);
     }
 
-    private void clean(List<Transaction> rem) throws Exception {
-        if (!rem.isEmpty()) {
-            Map<String, Object> mp = new HashMap<>();
-            mp.put("task", "cleanTransactions");
-
-            AMQP.BasicProperties props = new AMQP.BasicProperties().
-                    builder().
-                    headers(mp).
-                    contentType("application/json").
-                    build();
-
-            byte[] transactions = gson.toJson(rem).getBytes();
-            channel.basicPublish(exchangeName, committeeQueue, props, transactions);
-        }
-    }
-
 
     public void validateBlock(byte[] body) throws Exception {
-        System.out.println("node " + nodeId + " validating block");
         String blockJson = new String(body);
         Block block = gson.fromJson(blockJson, Block.class);
         List<Transaction> rem = BlockServices.validateAndAddBlock(block, mongoHandler);
@@ -211,8 +185,6 @@ public class NodeServices {
 
 
     public void updateUTXO(byte[] body) throws Exception {
-        System.out.println("node " + nodeId + " updating rocks");
-
         String blockJson = new String(body);
         Block block = gson.fromJson(blockJson, Block.class);
         rocksHandler.update(block);
@@ -239,16 +211,6 @@ public class NodeServices {
         String jsonString = json.toString();
 
         channel.basicPublish("", "SIGNALING_SERVER", props, jsonString.getBytes());
-    }
-
-    public void cleanTransactions(byte[] body) {
-        String jsonString = new String(body);
-
-        Type listType = new TypeToken<List<Transaction>>() {
-        }.getType();
-
-        List<Transaction> ts = gson.fromJson(jsonString, listType);
-        transactions.removeAll(ts);
     }
 
     private void generateGenesis() throws Exception {
@@ -278,8 +240,6 @@ public class NodeServices {
 
         String block = gson.toJson(b);
         channel.basicPublish(exchangeName, committeeQueue, props, block.getBytes());
-
-        //TODO call clean
 
         //update utxos
         mp.put("task", "updateUTXO");
@@ -316,8 +276,6 @@ public class NodeServices {
             case "validateBlock" -> validateBlock(body);
 
             case "updateUTXO" -> updateUTXO(body);
-
-            case "cleanTransactions" -> cleanTransactions(body);
 
             case "generateGenesis" -> generateGenesis();
         }

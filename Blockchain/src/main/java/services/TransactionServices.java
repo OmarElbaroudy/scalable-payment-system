@@ -11,57 +11,97 @@ import utilities.Sign;
 import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 public class TransactionServices {
 
-    public static Transaction createTransaction
-    (String[] privKeys, String recKey, double amount, RocksHandler handler) {
-        ECKeyPair[] keyPairs = new ECKeyPair[privKeys.length];
-        for (int i = 0; i < privKeys.length; i++) {
-            BigInteger privKey = new BigInteger(privKeys[i], 16);
-            keyPairs[i] = ECKeyPair.create(privKey);
-        }
+    private static Transaction createTransaction
+            (String privKey, String recKey, int amount, RocksHandler handler) {
+        BigInteger key = new BigInteger(privKey, 16);
+        ECKeyPair pair = ECKeyPair.create(key);
 
-        double balance = 0;
+        int balance = 0;
         List<UTXO> input = new ArrayList<>();
-        for (ECKeyPair pair : keyPairs) {
-            String pubKey = pair.getPublicKey().toString(16);
-            HashSet<UTXO> st = handler.getUTXOSet(pubKey);
+        String pubKey = pair.getPublicKey().toString(16);
+        HashSet<UTXO> st = handler.getUTXOSet(pubKey);
 
-            for (UTXO utxo : st) {
-                balance += utxo.getAmount();
-                byte[] msg = utxo.toString().getBytes();
-                Sign.SignatureData signature = Sign.signMessage(msg, pair);
+        for (UTXO utxo : st) {
+            balance += utxo.getAmount();
+            byte[] msg = utxo.toString().getBytes();
+            Sign.SignatureData signature = Sign.signMessage(msg, pair);
 
-                UTXO signed = new UTXO(utxo, signature);
-                input.add(signed);
-            }
+            UTXO signed = new UTXO(utxo, signature);
+            input.add(signed);
         }
 
         if (balance < amount) return null;
 
+        List<UTXO> output = List.of(new UTXO(amount, recKey));
         if (balance == amount) {
-            return new Transaction(input, new UTXO(amount, recKey));
+            return new Transaction(input, output);
         }
 
-        double rem = balance - amount;
-        UTXO returned = new UTXO(rem, keyPairs[0].getPublicKey().toString(16));
-        return new Transaction(input, new UTXO(amount, recKey), returned);
+        int rem = balance - amount;
+        UTXO returned = new UTXO(rem, pair.getPublicKey().toString(16));
+        return new Transaction(input, output, returned);
     }
 
-    public static boolean validateTransaction(Transaction t, RocksHandler handler)
+    private static Transaction updateTransactionCreation(Transaction t, String recKey, int amount, RocksHandler handler) {
+        int sumIn = 0, sumOut = 0;
+
+        for (UTXO utxo : t.getInput()) {
+            sumIn += utxo.getAmount();
+        }
+
+        for (UTXO utxo : t.getOutput()) {
+            sumOut += utxo.getAmount();
+        }
+
+        if (sumIn < sumOut + amount) {
+            return null;
+        }
+
+        sumOut += amount;
+        t.getOutput().add(new UTXO(amount, recKey));
+
+        int ret = sumIn - sumOut;
+        String senderKey = t.getInputPubKey();
+        t.setReturned(sumOut == sumIn ? null : new UTXO(ret, senderKey));
+
+        return t;
+    }
+
+    public static Transaction handleTransactionCreation(List<Transaction> ts, String privKey, String recKey, int amount, RocksHandler handler) {
+        BigInteger key = new BigInteger(privKey, 16);
+        String pubKey = Sign.publicKeyFromPrivate(key).toString(16);
+
+        for (Transaction t : ts) {
+            if (t.getInputPubKey().equals(pubKey)) {
+                return updateTransactionCreation(t, recKey, amount, handler);
+            }
+        }
+
+        Transaction t = createTransaction(privKey, recKey, amount, handler);
+
+        if (t != null) {
+            ts.add(t);
+            return t;
+        }
+
+        return null;
+    }
+
+    private static boolean validateTransaction(Transaction t, RocksHandler handler)
             throws SignatureException {
         boolean flag = true;
         double sumIn = 0;
 
-        if(t == null) return false;
+        if (t == null) return false;
 
         for (UTXO utxo : t.getInput()) {
             HashSet<UTXO> st = handler.getUTXOSet(utxo.getScriptPublicKey());
-            System.out.println(st);
+            System.out.println(st.contains(utxo));
             flag &= st.contains(utxo);
             sumIn += utxo.getAmount();
 
@@ -72,11 +112,30 @@ public class TransactionServices {
             flag &= validSig;
         }
 
-        double sumOut = t.getOutput().getAmount();
-        sumOut += t.getReturned() == null ? 0 : t.getReturned().getAmount();
-        flag &= Math.abs(sumIn - sumOut) < 0.001;
+        int sumOut = 0;
+        for (UTXO utxo : t.getOutput()) {
+            sumOut += utxo.getAmount();
+        }
 
+        sumOut += t.getReturned() == null ? 0 : t.getReturned().getAmount();
+        flag &= sumIn == sumOut;
         return flag;
+    }
+
+
+    public static boolean handleTransactionValidation(List<Transaction> ts, Transaction t, RocksHandler handler) throws SignatureException {
+        if (validateTransaction(t, handler)) {
+            for (int i = 0; i < ts.size(); i++) {
+                if (ts.get(i).getInputPubKey().equals(t.getInputPubKey())) {
+                    ts.set(i, t);
+                    return true;
+                }
+            }
+
+            ts.add(t);
+            return true;
+        }
+        return false;
     }
 
 
@@ -100,8 +159,8 @@ public class TransactionServices {
         return ans == -1 ? -1 : idx - ans - 1;
     }
 
-    public static double getBalance(String[] pubKeys, RocksHandler handler) {
-        double balance = 0;
+    public static int getBalance(String[] pubKeys, RocksHandler handler) {
+        int balance = 0;
         for (String pubKey : pubKeys) {
             HashSet<UTXO> st = handler.getUTXOSet(pubKey);
             for (UTXO utxo : st) {
@@ -111,24 +170,5 @@ public class TransactionServices {
 
         return balance;
     }
-
-    public static void orderByPubKey(List<Transaction> ts, HashMap<String, List<Transaction>> mp) {
-        for(Transaction t : ts){
-
-            if(t.getInput().isEmpty()){
-                List<Transaction> cur = mp.getOrDefault("genesis",  new ArrayList<>());
-                cur.add(t);
-
-                mp.put("genesis", cur);
-                continue;
-            }
-
-            UTXO input = t.getInput().get(0);
-            String pubKey = input.getScriptPublicKey();
-            List<Transaction> cur = mp.getOrDefault(pubKey, new ArrayList<>());
-
-            cur.add(t);
-            mp.put(pubKey, cur);
-        }
-    }
 }
+

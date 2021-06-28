@@ -8,7 +8,6 @@ public class RegistrationServices {
     private static int cur = 1;
 
     public static String generateNodeId() {
-//        return UUID.randomUUID().toString();
         return String.valueOf(cur++);
     }
 

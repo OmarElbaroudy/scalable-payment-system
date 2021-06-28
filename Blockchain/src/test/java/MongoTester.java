@@ -53,7 +53,7 @@ public class MongoTester {
             UTXO thrd = new UTXO(5, "10", sign);
 
             List<UTXO> input = List.of(fst, snd, thrd);
-            transaction = new Transaction(input, thrd);
+            transaction = new Transaction(input, List.of(thrd));
         } catch (Exception e) {
             System.err.println(e.getMessage());
             fail();

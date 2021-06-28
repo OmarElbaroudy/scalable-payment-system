@@ -1,7 +1,6 @@
 import application.Deregister;
 import application.Register;
 import application.SignalingServer;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.squareup.okhttp.*;
@@ -18,7 +17,6 @@ public class SignalingServerTester {
     private final static String BASE_URL = "http://localhost:5000";
     private static OkHttpClient client;
     private static RocksHandler handler;
-    private static Gson gson;
 
     @BeforeAll
     static void init() {
@@ -29,7 +27,6 @@ public class SignalingServerTester {
 
             SignalingServer.start();
             client = new OkHttpClient();
-            gson = new Gson();
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
@@ -41,7 +38,7 @@ public class SignalingServerTester {
             SignalingServer.stop();
             handler.closeHandler();
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -53,12 +50,9 @@ public class SignalingServerTester {
             ResponseBody resBody = client.newCall(req).execute().body();
             JsonObject json = JsonParser.parseString(resBody.string()).getAsJsonObject();
 
-            String nodeId = json.get("nodeId").getAsString();
-            int committeeQueue = json.get("committeeQueue").getAsInt();
-
             System.out.println(json);
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
             fail();
         }
     }
@@ -82,7 +76,7 @@ public class SignalingServerTester {
 
             client.newCall(req).execute();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
             fail();
         }
     }

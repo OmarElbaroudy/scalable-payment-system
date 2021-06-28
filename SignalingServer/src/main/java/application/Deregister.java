@@ -40,8 +40,7 @@ public class Deregister extends HttpServlet {
 
             resp.setStatus(HttpServletResponse.SC_OK);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(Arrays.toString(e.getStackTrace()));
+            e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
 

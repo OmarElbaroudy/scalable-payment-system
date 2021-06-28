@@ -9,23 +9,23 @@ import java.util.UUID;
 
 public class UTXO implements Serializable {
     private String txId;
-    private double amount;
+    private int amount;
     private String scriptPublicKey; //HEX
     private Sign.SignatureData scriptSig;
 
-    public UTXO(double amount, String scriptPublicKey, Sign.SignatureData scriptSig) {
+    public UTXO(int amount, String scriptPublicKey, Sign.SignatureData scriptSig) {
         this.amount = amount;
         this.scriptPublicKey = scriptPublicKey;
         this.scriptSig = scriptSig;
         String input = amount + scriptPublicKey;
-        txId = UUID.randomUUID() + hash(input);
+        txId = hash(input + UUID.randomUUID());
     }
 
-    public UTXO(double amount, String scriptPublicKey) {
+    public UTXO(int amount, String scriptPublicKey) {
         this.amount = amount;
         this.scriptPublicKey = scriptPublicKey;
         String input = amount + scriptPublicKey;
-        txId = UUID.randomUUID() + hash(input);
+        txId = hash(input + UUID.randomUUID());
         scriptSig = null;
     }
 
@@ -36,11 +36,11 @@ public class UTXO implements Serializable {
         this.scriptSig = scriptSig;
     }
 
-    public UTXO(UTXO utxo, double amount){
-        this.txId = utxo.txId;
+    public UTXO(int amount, String scriptPublicKey, String txId){
         this.amount = amount;
-        this.scriptPublicKey = utxo.scriptPublicKey;
-        this.scriptSig = utxo.scriptSig;
+        this.scriptPublicKey = scriptPublicKey;
+        this.txId = hash(txId);
+        this.scriptSig = null;
     }
 
     public UTXO() {
@@ -58,11 +58,11 @@ public class UTXO implements Serializable {
         this.txId = txId;
     }
 
-    public double getAmount() {
+    public int getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(int amount) {
         this.amount = amount;
     }
 

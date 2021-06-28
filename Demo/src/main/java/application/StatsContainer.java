@@ -138,8 +138,6 @@ public class StatsContainer {
             committeesCnt = mp.size();
             committeeOfNode.put(id, committeeId);
 
-            System.out.println(mp);
-
             registerNodeToLogger(id);
             Text text = new Text("Registering node " + id + " to committee "
                     + committeeId + " @ " + getTime());
@@ -181,11 +179,9 @@ public class StatsContainer {
         }
 
         if ("blockValidated".equals(json.get("task").getAsString())) {
-            System.out.println("hereee");
-
             String id = json.get("id").getAsString();
             Text text = new Text("node " + id +
-                    " has received and validated the last block mined @ " + getTime());
+                    " updated it's UTXO Set @ " + getTime());
             text.setFill(Color.NAVY);
             LoggerController.log(text, "signaling");
             return;
