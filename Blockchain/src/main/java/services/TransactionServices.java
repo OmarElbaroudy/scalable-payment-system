@@ -17,7 +17,6 @@ import java.util.List;
 
 public class TransactionServices {
 
-    //TODO call rocksHandler update after creating transaction successfully
     public static Transaction createTransaction
     (String[] privKeys, String recKey, double amount, RocksHandler handler) {
         ECKeyPair[] keyPairs = new ECKeyPair[privKeys.length];
@@ -62,6 +61,7 @@ public class TransactionServices {
 
         for (UTXO utxo : t.getInput()) {
             HashSet<UTXO> st = handler.getUTXOSet(utxo.getScriptPublicKey());
+            System.out.println(st);
             flag &= st.contains(utxo);
             sumIn += utxo.getAmount();
 

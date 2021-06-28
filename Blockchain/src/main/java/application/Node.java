@@ -1,6 +1,5 @@
 package application;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.rabbitmq.client.*;
@@ -9,8 +8,6 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.ResponseBody;
 import persistence.MongoHandler;
 import persistence.RocksHandler;
-import persistence.models.Block;
-import services.BlockServices;
 import services.NodeServices;
 
 import java.io.IOException;
@@ -19,46 +16,37 @@ import java.util.Map;
 
 
 public class Node {
-    private final String BASE_URL = "http://localhost:5000";
-    private final String exchangeName = "BLOCKCHAIN";
-    private final Gson gson;
     private final String nodeId;
     private final Channel channel;
-    private final String parentId;
-    private final String parentType;
-    private final String primaryQueue;
     private final NodeServices server;
-    private final RocksHandler rocksHandler;
-    private final MongoHandler mongoHandler;
 
     public Node() throws Exception {
-        gson = new Gson();
         OkHttpClient client = new OkHttpClient();
+        String BASE_URL = "http://localhost:5000";
         Request req = new Request.Builder().url(BASE_URL + "/register").build();
         ResponseBody resBody = client.newCall(req).execute().body();
         JsonObject json = JsonParser.parseString(resBody.string()).getAsJsonObject();
 
         nodeId = json.get("nodeId").getAsString();
-        parentId = json.get("parentId").getAsString();
-        parentType = json.get("parentType").getAsString();
-        primaryQueue = json.get("primaryQueue").getAsString();
+        String primaryQueue = json.get("primaryQueue").getAsString();
         String committeeQueue = json.get("committeeQueue").getAsString();
 
         System.out.println("node id is " + nodeId);
         System.out.println("committeeQueue is " + committeeQueue);
         System.out.println("primaryQueue is " + primaryQueue);
 
-        rocksHandler = new RocksHandler(nodeId);
-        mongoHandler = new MongoHandler(nodeId);
+        RocksHandler rocksHandler = new RocksHandler(nodeId);
+        MongoHandler mongoHandler = new MongoHandler(nodeId);
 
         ConnectionFactory factory = new ConnectionFactory();
         Connection connection = factory.newConnection();
         channel = connection.createChannel();
 
         channel.queueDeclare(nodeId, false, false, true, null);
+
+        String exchangeName = "BLOCKCHAIN";
         channel.queueBind(nodeId, exchangeName, committeeQueue);
         channel.queueBind(nodeId, exchangeName, primaryQueue);
-        channel.queueBind(nodeId, exchangeName, nodeId);
 
         server = new NodeServices.Builder(nodeId).
                 channel(channel).
@@ -68,70 +56,26 @@ public class Node {
                 mongoHandler(mongoHandler).
                 rocksHandler(rocksHandler).build();
 
-
-        initChain();
         start();
+        signalSuccessfulRegister();
     }
 
-    public static void main(String[] args) throws Exception {
-        new Node();
-    }
+    private void signalSuccessfulRegister() throws Exception {
+        Map<String, Object> mp = new HashMap<>();
+        mp.put("task", "nodeRegistered");
 
-    private void initChain() throws Exception {
-        switch (parentType) {
-            case "nil" -> {
-                System.out.println("generating genesis block");
-                BlockServices.generateGenesis(mongoHandler, rocksHandler, true);
-            }
-
-            case "SAME_COMMITTEE" -> {
-                System.out.println("same committee parent id is " + parentId);
-                Map<String, Object> mp = new HashMap<>();
-                mp.put("task", "sendGenesis");
-                mp.put("senderId", nodeId);
-
-                AMQP.BasicProperties props =
-                        new AMQP.BasicProperties().
-                                builder().
-                                headers(mp).
-                                contentType("application/json").
-                                build();
-
-                channel.basicPublish(exchangeName, parentId, props, null);
-            }
-
-            case "DIFFERENT_COMMITTEE" -> {
-                System.out.println("generating genesis block");
-                Block b = BlockServices.generateGenesis(mongoHandler, rocksHandler, false);
-                String json = gson.toJson(b);
-
-                Map<String, Object> mp = new HashMap<>();
-                mp.put("task", "updateUTXO");
-
-                AMQP.BasicProperties props =
-                        new AMQP.BasicProperties().
-                                builder().
-                                headers(mp).
-                                contentType("application/json").
-                                build();
-
-                System.out.println("sending update request");
-                channel.basicPublish(exchangeName, primaryQueue, props, json.getBytes());
-
-                mp.put("task", "sendGenesisUTXO");
-                mp.put("senderId", nodeId);
-
-                props = new AMQP.BasicProperties().
+        AMQP.BasicProperties props =
+                new AMQP.BasicProperties().
                         builder().
                         headers(mp).
                         contentType("application/json").
                         build();
 
-                channel.basicPublish(exchangeName, parentId, props, null);
+        channel.basicPublish("", "SIGNALING_SERVER", props, null);
+    }
 
-
-            }
-        }
+    public static void main(String[] args) throws Exception {
+        new Node();
     }
 
     private void start() throws Exception {
@@ -148,11 +92,8 @@ public class Node {
                         LongString fst = (LongString) properties.getHeaders().get("task");
                         String task = new String(fst.getBytes());
 
-                        LongString snd = (LongString) properties.getHeaders().get("senderId");
-                        String senderId = snd == null ? null : new String(snd.getBytes());
-
                         try {
-                            server.exec(task, senderId, body);
+                            server.exec(task, body);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

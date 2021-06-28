@@ -2,8 +2,11 @@ package application.controllers;
 
 import application.App;
 import application.StatsContainer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.*;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,6 +40,19 @@ public class CommitteesController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        update();
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.seconds(5.0), e -> {
+                    update();
+                })
+        );
+
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+    }
+
+
+    private void update(){
         updateCreateTransaction();
         updateMine();
         updateBalance();

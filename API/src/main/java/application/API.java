@@ -38,7 +38,6 @@ public class API {
         channel = connection.createChannel();
 
         channel.queueDeclare(queueName, false, false, true, null);
-        channel.queueBind(queueName, exchangeName, queueName);
     }
 
     public static void listen() throws Exception {
@@ -152,7 +151,7 @@ public class API {
 
         String json = jsonObject.toString();
 
-        channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, json.getBytes());
+        channel.basicPublish("", "SIGNALING_SERVER", props, json.getBytes());
 
         resp.setContentType("application/json");
         resp.setStatus(HttpServletResponse.SC_OK);
@@ -179,7 +178,7 @@ public class API {
         jsonObject.addProperty("pubKey", pubKey);
 
         String json = jsonObject.toString();
-        channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, json.getBytes());
+        channel.basicPublish("", "SIGNALING_SERVER", props, json.getBytes());
 
         AsyncContext async = req.startAsync();
         addResponse(pubKey, resp, async);
@@ -192,7 +191,7 @@ public class API {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, "Logger", props, json.toString().getBytes());
+        channel.basicPublish("", "Logger", props, json.toString().getBytes());
     }
 
 

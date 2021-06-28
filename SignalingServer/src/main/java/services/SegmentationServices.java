@@ -12,17 +12,18 @@ import java.util.Map;
 
 public class SegmentationServices {
     private final Channel channel;
+    private final RocksHandler handler;
     private final String exchangeName = "BLOCKCHAIN";
     private final CoordinationServices services;
-    private final int numberOfCommittees;
+    private int numberOfCommittees;
     private int transactionNumber = 0;
-    private boolean mining = false;
+    private boolean mining = false, initialized = false;
     private int curCommittee = 0;
 
-    public SegmentationServices(RocksHandler handler, Channel channel) {
+    public SegmentationServices(RocksHandler handler, Channel channel) throws Exception {
+        this.handler = handler;
         this.channel = channel;
         services = new CoordinationServices(handler);
-        numberOfCommittees = handler.getNumberOfCommittees();
     }
 
     private void createTransaction(byte[] body) throws Exception {
@@ -46,7 +47,7 @@ public class SegmentationServices {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, nodeId, props, body);
+        channel.basicPublish("", nodeId, props, body);
     }
 
     private void getBalance(byte[] body) throws Exception {
@@ -70,7 +71,7 @@ public class SegmentationServices {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, nodeId, props, body);
+        channel.basicPublish("", nodeId, props, body);
     }
 
     private void routeBalance(byte[] body) throws Exception {
@@ -96,11 +97,11 @@ public class SegmentationServices {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, "API", props, body);
+        channel.basicPublish("", "API", props, body);
     }
 
-    private void blockValidated(byte[] body) throws Exception{
-        if(!mining)  return;
+    private void blockValidated(byte[] body) throws Exception {
+        if (!mining) return;
 
         String s = new String(body);
         JsonObject json = JsonParser.parseString(s).getAsJsonObject();
@@ -111,13 +112,25 @@ public class SegmentationServices {
         jsonObject.addProperty("id", nodeId);
         jsonObject.addProperty("task", "blockValidated");
 
+        System.out.println(nodeId + " validated block");
+
         SignalingServer.log(jsonObject);
 
         mining = services.isMining(nodeId, false);
     }
 
+    private void nodeRegistered() throws Exception {
+        if (initialized) return;
+        int cnt = handler.getNumberOfNodes();
+        if (cnt == Integer.parseInt(System.getenv("TOTAL_NUMBER_OF_NODES"))) {
+            initialized = true;
+            init();
+        }
+    }
+
     private void segment() throws Exception {
         int limit = Integer.parseInt(System.getenv("TRANSACTION_NUMBER"));
+        limit *= Integer.parseInt(System.getenv("COMMITTEE_SIZE"));
         if (!mining && transactionNumber >= limit) {
             transactionNumber = 0;
             mining = true;
@@ -142,18 +155,47 @@ public class SegmentationServices {
                                 contentType("application/json").
                                 build();
 
-                channel.basicPublish(exchangeName, nodeId, props, null);
+                channel.basicPublish("", nodeId, props, null);
             }
         }
     }
 
-    public void incTransactions(){
+    private void incTransactions() {
         transactionNumber++;
     }
 
-    public void incTransactionsByCommittee(byte[] body) {
+    private void incTransactionsByCommittee(byte[] body) {
         String committeeId = new String(body);
         mining = services.isMining(committeeId, true);
+    }
+
+    private void init() throws Exception {
+        System.out.println("initialized");
+        numberOfCommittees = handler.getNumberOfCommittees();
+        for (int i = 1; i <= numberOfCommittees; i++) {
+            String nodeId = services.getRandomNodeId(String.valueOf(i));
+            System.out.println("electing node" + nodeId + " to generate genesis");
+
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("server", "signaling");
+            jsonObject.addProperty("id", nodeId);
+            jsonObject.addProperty("task", "generateGenesis");
+
+            SignalingServer.log(jsonObject);
+
+
+            Map<String, Object> mp = new HashMap<>();
+            mp.put("task", "generateGenesis");
+
+            AMQP.BasicProperties props =
+                    new AMQP.BasicProperties().
+                            builder().
+                            headers(mp).
+                            contentType("application/json").
+                            build();
+
+            channel.basicPublish("", nodeId, props, null);
+        }
     }
 
     public void exec(String task, byte[] body) throws Exception {
@@ -166,11 +208,12 @@ public class SegmentationServices {
 
             case "blockValidated" -> blockValidated(body);
 
-             case "incTransactions" -> incTransactions();
+            case "incTransactions" -> incTransactions();
 
-             case "validateCommittee" -> incTransactionsByCommittee(body);
+            case "validateCommittee" -> incTransactionsByCommittee(body);
+
+            case "nodeRegistered" -> nodeRegistered();
         }
-
         segment();
     }
 }

@@ -43,7 +43,7 @@ public class NodeServices {
         System.out.println(t == null ? "unable to create transaction" :
                 "created transaction successfully");
 
-        if(t != null){
+        if (t != null) {
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("server", "node");
             jsonObject.addProperty("id", nodeId);
@@ -100,7 +100,7 @@ public class NodeServices {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, null);
+        channel.basicPublish("", "SIGNALING_SERVER", props, null);
     }
 
 
@@ -138,7 +138,7 @@ public class NodeServices {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, json.toString().getBytes());
+        channel.basicPublish("", "SIGNALING_SERVER", props, json.toString().getBytes());
     }
 
     public void mine() throws Exception {
@@ -157,7 +157,7 @@ public class NodeServices {
                             contentType("application/json").
                             build();
 
-            channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, committeeQueue.getBytes());
+            channel.basicPublish("", "SIGNALING_SERVER", props, committeeQueue.getBytes());
             return;
         }
 
@@ -171,35 +171,10 @@ public class NodeServices {
         jsonObject.addProperty("block", b.getIdx());
 
         log(jsonObject);
-
-        //committee validate block
-        Map<String, Object> mp = new HashMap<>();
-        mp.put("task", "validateBlock");
-
-        AMQP.BasicProperties props =
-                new AMQP.BasicProperties().
-                        builder().
-                        headers(mp).
-                        contentType("application/json").
-                        build();
-
-        String block = gson.toJson(b);
-        channel.basicPublish(exchangeName, committeeQueue, props, block.getBytes());
-
-        //TODO call clean
-
-        //update utxos
-        mp.put("task", "updateUTXO");
-        props = new AMQP.BasicProperties().
-                builder().
-                headers(mp).
-                contentType("application/json").
-                build();
-
-        channel.basicPublish(exchangeName, primaryQueue, props, block.getBytes());
+        signalMinedBlock(b);
     }
 
-    private void clean(List<Transaction> rem) throws Exception{
+    private void clean(List<Transaction> rem) throws Exception {
         if (!rem.isEmpty()) {
             Map<String, Object> mp = new HashMap<>();
             mp.put("task", "cleanTransactions");
@@ -263,52 +238,7 @@ public class NodeServices {
         json.addProperty("nodeId", nodeId);
         String jsonString = json.toString();
 
-        channel.basicPublish(exchangeName, "SIGNALING_SERVER", props, jsonString.getBytes());
-    }
-
-
-    public void sendGenesis(String senderId) throws Exception {
-        System.out.println("node " + nodeId + " sending Genesis");
-        Block b = mongoHandler.getBlock(1);
-        String json = gson.toJson(b);
-
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("server", "node");
-        jsonObject.addProperty("id", nodeId);
-        jsonObject.addProperty("task", "sendGenesis");
-        jsonObject.addProperty("senderId", senderId);
-
-        log(jsonObject);
-
-        Map<String, Object> mp = new HashMap<>();
-        mp.put("task", "recGenesis");
-
-        AMQP.BasicProperties props =
-                new AMQP.BasicProperties().
-                        builder().
-                        headers(mp).
-                        contentType("application/json").
-                        build();
-
-        channel.basicPublish(exchangeName, senderId, props, json.getBytes());
-    }
-
-
-    public void recGenesis(byte[] body) throws Exception{
-        String jsonString = new String(body);
-        Block b = gson.fromJson(jsonString, Block.class);
-
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("server", "node");
-        jsonObject.addProperty("id", nodeId);
-        jsonObject.addProperty("task", "recGenesis");
-
-        log(jsonObject);
-
-        System.out.println("node " + nodeId + " received genesis successfully");
-
-        mongoHandler.saveBlock(b);
-        rocksHandler.update(b);
+        channel.basicPublish("", "SIGNALING_SERVER", props, jsonString.getBytes());
     }
 
     public void cleanTransactions(byte[] body) {
@@ -321,20 +251,23 @@ public class NodeServices {
         transactions.removeAll(ts);
     }
 
-    public void sendGenesisUTXO(String senderId) throws Exception{
-        Block b = mongoHandler.getBlock(1);
-        String json = gson.toJson(b);
+    private void generateGenesis() throws Exception {
+        System.out.println(nodeId + " generating genesis block");
+        Block b = BlockServices.generateGenesis(mongoHandler, rocksHandler, false, false);
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("server", "node");
         jsonObject.addProperty("id", nodeId);
-        jsonObject.addProperty("task", "sendGenesisUTXO");
-        jsonObject.addProperty("senderId", senderId);
+        jsonObject.addProperty("task", "generateGenesis");
 
         log(jsonObject);
+        signalMinedBlock(b);
+    }
 
+    private void signalMinedBlock(Block b) throws Exception {
+        //committee validate block
         Map<String, Object> mp = new HashMap<>();
-        mp.put("task", "recGenesisUTXO");
+        mp.put("task", "validateBlock");
 
         AMQP.BasicProperties props =
                 new AMQP.BasicProperties().
@@ -343,22 +276,22 @@ public class NodeServices {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, senderId, props, json.getBytes());
+        String block = gson.toJson(b);
+        channel.basicPublish(exchangeName, committeeQueue, props, block.getBytes());
+
+        //TODO call clean
+
+        //update utxos
+        mp.put("task", "updateUTXO");
+        props = new AMQP.BasicProperties().
+                builder().
+                headers(mp).
+                contentType("application/json").
+                build();
+
+        channel.basicPublish(exchangeName, primaryQueue, props, block.getBytes());
     }
 
-    public void recGenesisUTXO(byte[] body) throws Exception{
-        String jsonString = new String(body);
-        Block b = gson.fromJson(jsonString, Block.class);
-
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("server", "node");
-        jsonObject.addProperty("id", nodeId);
-        jsonObject.addProperty("task", "recGenesisUTXO");
-
-        log(jsonObject);
-
-        rocksHandler.update(b);
-    }
 
     private void log(JsonObject json) throws Exception {
         AMQP.BasicProperties props =
@@ -367,10 +300,10 @@ public class NodeServices {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, "Logger", props, json.toString().getBytes());
+        channel.basicPublish("", "Logger", props, json.toString().getBytes());
     }
 
-    public void exec(String task, String senderId, byte[] body) throws Exception {
+    public void exec(String task, byte[] body) throws Exception {
         switch (task) {
             case "createTransaction" -> createTransaction(body);
 
@@ -384,17 +317,12 @@ public class NodeServices {
 
             case "updateUTXO" -> updateUTXO(body);
 
-            case "sendGenesis" -> sendGenesis(senderId);
-
-            case "recGenesis" -> recGenesis(body);
-
             case "cleanTransactions" -> cleanTransactions(body);
 
-            case "sendGenesisUTXO" -> sendGenesisUTXO(senderId);
-
-            case "recGenesisUTXO" -> recGenesisUTXO(body);
+            case "generateGenesis" -> generateGenesis();
         }
     }
+
 
     public static class Builder {
         private final Gson gson;

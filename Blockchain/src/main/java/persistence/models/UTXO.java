@@ -36,6 +36,13 @@ public class UTXO implements Serializable {
         this.scriptSig = scriptSig;
     }
 
+    public UTXO(UTXO utxo, double amount){
+        this.txId = utxo.txId;
+        this.amount = amount;
+        this.scriptPublicKey = utxo.scriptPublicKey;
+        this.scriptSig = utxo.scriptSig;
+    }
+
     public UTXO() {
     }
 

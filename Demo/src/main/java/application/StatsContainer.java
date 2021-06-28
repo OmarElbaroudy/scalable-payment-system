@@ -138,6 +138,8 @@ public class StatsContainer {
             committeesCnt = mp.size();
             committeeOfNode.put(id, committeeId);
 
+            System.out.println(mp);
+
             registerNodeToLogger(id);
             Text text = new Text("Registering node " + id + " to committee "
                     + committeeId + " @ " + getTime());
@@ -145,8 +147,9 @@ public class StatsContainer {
             text.setFill(Color.MEDIUMSEAGREEN);
             LoggerController.log(text, "signaling");
 
-            text.setText(" Node " + id + " is up and registered @ " + getTime());
-            LoggerController.log(text, id);
+            Text nodeText = new Text(" Node " + id + " is up and registered @ " + getTime());
+            nodeText.setFill(Color.MEDIUMSEAGREEN);
+            LoggerController.log(nodeText, id);
             return;
         }
 
@@ -178,6 +181,8 @@ public class StatsContainer {
         }
 
         if ("blockValidated".equals(json.get("task").getAsString())) {
+            System.out.println("hereee");
+
             String id = json.get("id").getAsString();
             Text text = new Text("node " + id +
                     " has received and validated the last block mined @ " + getTime());
@@ -191,6 +196,14 @@ public class StatsContainer {
             Text text = new Text("Electing node " + id +
                     " to mine the next block for it's committee @ " + getTime());
             text.setFill(Color.TOMATO);
+            LoggerController.log(text, "signaling");
+        }
+
+        if("generateGenesis".equals(json.get("task").getAsString())){
+            String id = json.get("id").getAsString();
+            Text text = new Text("Electing node " + id +
+                    " to generate genesis block for it's committee @ " + getTime());
+            text.setFill(Color.DARKRED);
             LoggerController.log(text, "signaling");
         }
     }
@@ -348,6 +361,16 @@ public class StatsContainer {
                         amount + " @ " + getTime());
 
                 text.setFill(Color.MEDIUMVIOLETRED);
+                LoggerController.log(text, nodeId);
+                return;
+            }
+
+            case "generateGenesis" : {
+                String nodeId = json.get("id").getAsString();
+                Text text = new Text("generated Genesis Block" +
+                        " @ " + getTime());
+
+                text.setFill(Color.CRIMSON);
                 LoggerController.log(text, nodeId);
             }
         }

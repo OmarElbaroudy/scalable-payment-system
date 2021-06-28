@@ -130,9 +130,9 @@ public class RocksHandler {
     }
 
     public void update(List<Transaction> ts){
-        double rem = 0, val = 0;
+        double out = 0, val = 0;
         for(Transaction t : ts){
-            rem += t.getOutput().getAmount();
+            out += t.getOutput().getAmount();
             HashSet<UTXO> st = getUTXOSet(t.getOutput().getScriptPublicKey());
             st.add(t.getOutput());
             addUTXOSet(t.getOutput().getScriptPublicKey(), st);
@@ -147,7 +147,7 @@ public class RocksHandler {
             }
 
             st.clear();
-            st.add(new UTXO(val - rem, pubKey));
+            st.add(new UTXO(val - out, pubKey)); //new utxo
             addUTXOSet(pubKey, st);
         }
 

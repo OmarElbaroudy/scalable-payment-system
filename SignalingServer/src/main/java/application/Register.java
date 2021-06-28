@@ -29,25 +29,10 @@ public class Register extends HttpServlet {
             String nodeId = RegistrationServices.generateNodeId();
             String primaryQueue = RegistrationServices.getPrimaryQueue();
             String committeeQueue = RegistrationServices.getCommitteeQueue(nodeId, handler);
-            String[] parent = RegistrationServices.getParentNodeId(nodeId, handler);
 
             json.addProperty("nodeId", nodeId);
             json.addProperty("primaryQueue", primaryQueue);
             json.addProperty("committeeQueue", committeeQueue);
-
-            //parent not found e.g first node in system
-            if (parent[0].equals("nil")) {
-                json.addProperty("parentType", "nil");
-                json.addProperty("parentId", "");
-
-            } else if (parent[1].equals("SAME_COMMITTEE")) {
-                json.addProperty("parentType", "SAME_COMMITTEE");
-                json.addProperty("parentId", parent[0]);
-
-            } else if (parent[1].equals("DIFFERENT_COMMITTEE")) {
-                json.addProperty("parentType", "DIFFERENT_COMMITTEE");
-                json.addProperty("parentId", parent[0]);
-            }
 
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("server", "signaling");
@@ -56,11 +41,6 @@ public class Register extends HttpServlet {
             jsonObject.addProperty("committee", committeeQueue);
 
             SignalingServer.log(jsonObject);
-
-            int cnt = handler.getNumberOfNodes();
-            if (cnt == Integer.parseInt(System.getenv("TOTAL_NUMBER_OF_NODES"))) {
-                SignalingServer.segment();
-            }
 
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.setContentType("application/json");

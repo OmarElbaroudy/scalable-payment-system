@@ -69,6 +69,7 @@ public class SignalingServer {
 
         initRabbit();
         server.start();
+        segment();
     }
 
     public static void initRabbit() throws Exception {
@@ -78,7 +79,6 @@ public class SignalingServer {
 
         channel.exchangeDeclare(exchangeName, BuiltinExchangeType.DIRECT, false, true, null);
         channel.queueDeclare(QUEUE_NAME, false, false, true, null);
-        channel.queueBind(QUEUE_NAME, exchangeName, QUEUE_NAME);
     }
 
     public static void stop() throws Exception {
@@ -94,7 +94,7 @@ public class SignalingServer {
                         contentType("application/json").
                         build();
 
-        channel.basicPublish(exchangeName, "Logger", props, json.toString().getBytes());
+        channel.basicPublish("", "Logger", props, json.toString().getBytes());
     }
 
     public static void main(String[] args) throws Exception {

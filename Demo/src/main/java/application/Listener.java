@@ -44,6 +44,5 @@ public class Listener {
         channel = connection.createChannel();
 
         channel.queueDeclare(QUEUE_NAME, false, false, true, null);
-        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, QUEUE_NAME);
     }
 }

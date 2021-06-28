@@ -26,7 +26,10 @@ public class CoordinationServices {
         if (!isCommittee) {
             validatedBlocks.add(nodeId);
         } else {
-            committeeNodes += handler.getCommitteeSize(nodeId);
+            if(!validatedBlocks.contains(nodeId)){
+                validatedBlocks.add(nodeId);
+                committeeNodes += handler.getCommitteeSize(nodeId);
+            }
         }
 
         if (validatedBlocks.size() + committeeNodes < totalNumberOfNodes)

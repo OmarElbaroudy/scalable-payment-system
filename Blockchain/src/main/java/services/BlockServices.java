@@ -102,7 +102,11 @@ public class BlockServices {
      */
     public static List<Transaction> validateAndAddBlock(Block block, MongoHandler handler) {
         Block lst = getLastBlock(handler);
-        if (lst == null) return null; //Genesis
+
+        if (lst == null){ //Genesis
+           handler.saveBlock(block);
+           return block.getTransactions().getTransactions();
+        }
 
         int difficulty = Integer.parseInt(
                 Objects.requireNonNull(System.getenv("DIFFICULTY")));
@@ -127,18 +131,18 @@ public class BlockServices {
         return comp != null && comp.equals(block);
     }
 
-    public static Block generateGenesis(MongoHandler handler, RocksHandler rocksHandler, boolean updateRocks) {
+    public static Block generateGenesis(MongoHandler handler, RocksHandler rocksHandler, boolean updateRocks, boolean updateMongo) {
         String prevHash = System.getenv("GENESIS_PREVIOUS_HASH");
         int nonce = Integer.parseInt(Objects.requireNonNull(System.getenv("GENESIS_NONCE")));
         String pubKey = System.getenv("GENESIS_PUBLIC_KEY");
 
         MetaData data = new MetaData(1, prevHash, nonce, 0);
 
-        UTXO output = new UTXO(1000, pubKey);
+        UTXO output = new UTXO(10_000, pubKey);
         Transaction transaction = new Transaction(new ArrayList<>(), output);
 
         Block b = new Block(data, new MerkelTree(List.of(transaction)));
-        handler.saveBlock(b);
+        if(updateMongo) handler.saveBlock(b);
         if (updateRocks) rocksHandler.update(b);
         return b;
     }
