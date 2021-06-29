@@ -16,57 +16,58 @@
 <VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="658.0" prefWidth="780.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.controllers.NodesController">
     <children>
         <Label text="Nodes Requests Distribution" textAlignment="CENTER">
-         <font>
-            <Font size="24.0" />
-         </font></Label>
-      <GridPane>
-         <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-         </columnConstraints>
-         <rowConstraints>
-            <RowConstraints maxHeight="200.0" minHeight="200.0" prefHeight="200.0" vgrow="SOMETIMES" />
-            <RowConstraints maxHeight="200.0" minHeight="200.0" prefHeight="200.0" vgrow="SOMETIMES" />
-            <RowConstraints maxHeight="200.0" minHeight="200.0" prefHeight="200.0" vgrow="SOMETIMES" />
-         </rowConstraints>
-         <children>
-            <BarChart fx:id="createTransaction" title="Create Transaction Requests">
-               <xAxis>
-                  <CategoryAxis side="BOTTOM" />
-               </xAxis>
-               <yAxis>
-                  <NumberAxis side="LEFT" />
-               </yAxis>
-            </BarChart>
-            <BarChart fx:id="mine" title="Mining Requests" GridPane.columnIndex="1">
-               <xAxis>
-                  <CategoryAxis side="BOTTOM" />
-               </xAxis>
-               <yAxis>
-                  <NumberAxis side="LEFT" />
-               </yAxis>
-            </BarChart>
-            <PieChart fx:id="balance" title="Get Balance Requests" GridPane.rowIndex="1" />
-            <PieChart fx:id="updateRocks" title="Update UTXO Set Requests" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <BarChart fx:id="validateTransaction" title="Validate Transaction Requests" GridPane.rowIndex="2">
-               <xAxis>
-                  <CategoryAxis side="BOTTOM" />
-               </xAxis>
-               <yAxis>
-                  <NumberAxis side="LEFT" />
-               </yAxis>
-            </BarChart>
-            <BarChart fx:id="validateBlock" title="Validate Mined Block Requests" GridPane.columnIndex="1" GridPane.rowIndex="2">
-               <xAxis>
-                  <CategoryAxis side="BOTTOM" />
-               </xAxis>
-               <yAxis>
-                  <NumberAxis side="LEFT" />
-               </yAxis>
-            </BarChart>
-         </children>
-      </GridPane>
-        <HBox alignment="CENTER" prefHeight="30.0" prefWidth="736.0">
+            <font>
+                <Font size="24.0" />
+            </font>
+        </Label>
+        <GridPane>
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints maxHeight="1.7976931348623157E308" minHeight="200.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="1.7976931348623157E308" minHeight="200.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="1.7976931348623157E308" minHeight="200.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <BarChart fx:id="createTransaction" title="Create Transaction Requests">
+                    <xAxis>
+                        <CategoryAxis fx:id="createTransactionX" side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="createTransactionY" side="LEFT" upperBound="50.0" />
+                    </yAxis>
+                </BarChart>
+                <BarChart fx:id="mine" title="Mining Requests" GridPane.columnIndex="1">
+                    <xAxis>
+                        <CategoryAxis fx:id="mineX" side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="mineY" side="LEFT" upperBound="50.0" />
+                    </yAxis>
+                </BarChart>
+                <PieChart fx:id="balance" title="Get Balance Requests" GridPane.rowIndex="1" />
+                <PieChart fx:id="updateRocks" title="Update UTXO Set Requests" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <BarChart fx:id="validateTransaction" title="Validate Transaction Requests" GridPane.rowIndex="2">
+                    <xAxis>
+                        <CategoryAxis fx:id="validateTransactionX" side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="validateTransactionY" side="LEFT" upperBound="50.0" />
+                    </yAxis>
+                </BarChart>
+                <BarChart fx:id="validateBlock" title="Validate Mined Block Requests" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                    <xAxis>
+                        <CategoryAxis fx:id="validateBlockX" side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="validateBlockY" side="LEFT" upperBound="50.0" />
+                    </yAxis>
+                </BarChart>
+            </children>
+        </GridPane>
+        <HBox alignment="CENTER" prefHeight="58.0" prefWidth="836.0">
             <children>
                 <Button fx:id="loggerButton" mnemonicParsing="false" onAction="#switchToLoggerScene" text="Logger" />
                 <Button fx:id="statsButton" mnemonicParsing="false" onAction="#switchToStatsScene" text="Stats" />

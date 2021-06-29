@@ -20,6 +20,14 @@ public class NodesController implements Initializable {
     public BarChart<String, Number> validateBlock;
     public BarChart<String, Number> createTransaction;
     public BarChart<String, Number> validateTransaction;
+    public CategoryAxis createTransactionX;
+    public CategoryAxis validateTransactionX;
+    public NumberAxis validateTransactionY;
+    public NumberAxis createTransactionY;
+    public CategoryAxis validateBlockX;
+    public NumberAxis validateBlockY;
+    public CategoryAxis mineX;
+    public NumberAxis mineY;
 
     public void switchToLoggerScene() throws IOException {
         App.setRoot("logger");
@@ -42,7 +50,7 @@ public class NodesController implements Initializable {
         update();
 
         Timeline timeline = new Timeline(
-                new KeyFrame(Duration.seconds(5.0), e -> {
+                new KeyFrame(Duration.seconds(15.0), e -> {
                     update();
                 })
         );
@@ -51,7 +59,7 @@ public class NodesController implements Initializable {
         timeline.play();
     }
 
-    private void update(){
+    private void update() {
         updateCreateTransaction();
         updateMine();
         updateBalance();
@@ -61,29 +69,24 @@ public class NodesController implements Initializable {
     }
 
     private void updateValidateTransaction() {
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Committee number");
-
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Number of Validate Transaction Requests");
-
-        validateTransaction = new BarChart<>(xAxis, yAxis);
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        validateTransaction.getData().clear();
+        validateTransactionX.setLabel("Committee number");
+        validateTransactionY.setLabel("Number of Validate Transaction Requests");
 
         for (int cur : StatsContainer.mp.keySet()) {
-            for(String id : StatsContainer.mp.get(cur)){
+            for (String id : StatsContainer.mp.get(cur)) {
+                XYChart.Series<String, Number> series = new XYChart.Series<>();
                 int cnt = StatsContainer.getNodeValidateTransactionCnt(id);
                 series.getData().add(new XYChart.Data<>(id, cnt));
+                validateTransaction.getData().add(series);
             }
         }
-
-        validateTransaction.getData().add(series);
     }
 
     private void updateRocks() {
-        updateRocks = new PieChart();
+        updateRocks.getData().clear();
         for (int cur : StatsContainer.mp.keySet()) {
-            for(String id : StatsContainer.mp.get(cur)){
+            for (String id : StatsContainer.mp.get(cur)) {
                 int cnt = StatsContainer.getNodeUpdateRocksCnt(id);
                 updateRocks.getData().add(new PieChart.Data(id, cnt));
             }
@@ -91,73 +94,60 @@ public class NodesController implements Initializable {
     }
 
     private void updateValidateBlock() {
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Committee number");
-
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Number of Validate Block Requests");
-
-        validateBlock = new BarChart<>(xAxis, yAxis);
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        validateBlock.getData().clear();
+        validateBlockX.setLabel("Committee number");
+        validateBlockY.setLabel("Number of Validate Block Requests");
 
         for (int cur : StatsContainer.mp.keySet()) {
-            for(String id : StatsContainer.mp.get(cur)){
+            for (String id : StatsContainer.mp.get(cur)) {
+                XYChart.Series<String, Number> series = new XYChart.Series<>();
                 int cnt = StatsContainer.getNodeValidateBlockCnt(id);
                 series.getData().add(new XYChart.Data<>(id, cnt));
+                validateBlock.getData().add(series);
             }
         }
 
-        validateBlock.getData().add(series);
     }
 
     private void updateBalance() {
-        balance = new PieChart();
+        balance.getData().clear();
         for (int cur : StatsContainer.mp.keySet()) {
-            for(String id : StatsContainer.mp.get(cur)){
+            for (String id : StatsContainer.mp.get(cur)) {
                 int cnt = StatsContainer.getNodeBalanceCnt(id);
-                updateRocks.getData().add(new PieChart.Data(id, cnt));
+                balance.getData().add(new PieChart.Data(id, cnt));
             }
         }
     }
 
 
     private void updateMine() {
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Committee number");
-
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Number of Mine Requests");
-
-        mine = new BarChart<>(xAxis, yAxis);
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        mine.getData().clear();
+        mineX.setLabel("Committee number");
+        mineY.setLabel("Number of Mine Requests");
 
         for (int cur : StatsContainer.mp.keySet()) {
-            for(String id : StatsContainer.mp.get(cur)){
+            for (String id : StatsContainer.mp.get(cur)) {
+                XYChart.Series<String, Number> series = new XYChart.Series<>();
                 int cnt = StatsContainer.getNodeMineCnt(id);
                 series.getData().add(new XYChart.Data<>(id, cnt));
+                mine.getData().add(series);
             }
         }
 
-        mine.getData().add(series);
     }
 
     private void updateCreateTransaction() {
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Committee number");
-
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Number of Create Transactions Requests");
-
-        createTransaction = new BarChart<>(xAxis, yAxis);
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        createTransaction.getData().clear();
+        createTransactionX.setLabel("Committee number");
+        createTransactionY.setLabel("Number of Create Transactions Requests");
 
         for (int cur : StatsContainer.mp.keySet()) {
-            for(String id : StatsContainer.mp.get(cur)){
+            for (String id : StatsContainer.mp.get(cur)) {
+                XYChart.Series<String, Number> series = new XYChart.Series<>();
                 int cnt = StatsContainer.getNodeCreateTransactionCnt(id);
                 series.getData().add(new XYChart.Data<>(id, cnt));
+                createTransaction.getData().add(series);
             }
         }
-
-        createTransaction.getData().add(series);
     }
 }

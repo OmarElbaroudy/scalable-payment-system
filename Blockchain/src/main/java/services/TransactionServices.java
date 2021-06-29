@@ -101,7 +101,6 @@ public class TransactionServices {
 
         for (UTXO utxo : t.getInput()) {
             HashSet<UTXO> st = handler.getUTXOSet(utxo.getScriptPublicKey());
-            System.out.println(st.contains(utxo));
             flag &= st.contains(utxo);
             sumIn += utxo.getAmount();
 
