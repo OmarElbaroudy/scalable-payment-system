@@ -14,8 +14,6 @@ import Alert from 'react-bootstrap/Alert';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {fetcher} from "../API/Fetcher";
 
-import Register from './Regform'
-
 export default function Profile() {
     const [showBalance, setShowBalance] = useState(false);
     const [showTransfer, setShowTransfer] = useState(false);
@@ -24,7 +22,7 @@ export default function Profile() {
     const [showAlert, setShowAlert] = useState(false);
 
     const [userName, setUserName] = useState('');
-    const [balance, setBalance] = useState('');
+    const [balance, setBalance] = useState('0');
     const [transferReceiver, setTransferReceiver] = useState('');
     const [transferAmount, setTransferAmount] = useState('');
     const [transferStatus, setTransferStatus] = useState('');
@@ -75,6 +73,7 @@ export default function Profile() {
         try {
             const userId = await getUserId();
             const data = await fetcher.balance(userId);
+            console.log(data.amount);
             setBalance(data.amount);
         } catch (e) {
             console.log(e);
