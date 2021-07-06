@@ -1,4 +1,6 @@
 import React, {Component, useState, useEffect} from 'react';
+import Navbar from 'react-bootstrap/Navbar';
+import Nav from 'react-bootstrap/Nav';
 import {
     StyleSheet,
     Text,
@@ -13,8 +15,11 @@ import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {fetcher} from "../API/Fetcher";
+import Home from "../components/Home";
+import Login from "../components/Login";
 
-export default function Profile() {
+
+export default function Profile({navigation}) {
     const [showBalance, setShowBalance] = useState(false);
     const [showTransfer, setShowTransfer] = useState(false);
     const [showBuy, setShowBuy] = useState(false);
@@ -88,6 +93,11 @@ export default function Profile() {
     const handleShowSell = () => {
         handleShow4();
     }
+    //If refresh bug is handled this should be changed
+    const handleLogOut = () => {
+        // window.location.reload();
+        navigation.push("Login");
+    }
     const handleTransferTransaction = async (receiver, amount) => {
         try {
             const userId = await getUserId();
@@ -133,7 +143,16 @@ export default function Profile() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}></View>
+            <View style={styles.header}>
+                <Navbar bg="light" variant="light" style={{minWidth: 700}}>
+                    <Nav className="ml-auto">
+                        <Nav.Link href="#" style={{color: "black"}}
+                                  onSelect={() => window.location.reload()}>Home</Nav.Link>
+                        <Nav.Link href="#" style={{color: "black"}} onSelect={() => navigation.push("Login")}>Log
+                            out</Nav.Link>
+                    </Nav>
+                </Navbar>
+            </View>
             <Image style={styles.avatar} source={{uri: 'https://bootdey.com/img/Content/avatar/avatar6.png'}}/>
             <View style={styles.body}>
                 <View style={styles.bodyContent}>
@@ -298,4 +317,8 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         backgroundColor: "#00BFFF",
     },
+    navLink: {
+        fontFamily: 'Roboto',
+        color: '#FFFFFF'
+    }
 });
