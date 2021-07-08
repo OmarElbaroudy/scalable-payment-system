@@ -37,7 +37,7 @@ public class TransactionServices {
 
         if (balance < amount) return null;
 
-        List<UTXO> output = List.of(new UTXO(amount, recKey));
+        List<UTXO> output = new ArrayList<>(List.of(new UTXO(amount, recKey)));
         if (balance == amount) {
             return new Transaction(input, output);
         }

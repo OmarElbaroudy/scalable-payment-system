@@ -50,9 +50,7 @@ public class CommitteesController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         update();
         Timeline timeline = new Timeline(
-                new KeyFrame(Duration.seconds(15.0), e -> {
-                    update();
-                })
+                new KeyFrame(Duration.seconds(60.0), e -> update())
         );
 
         timeline.setCycleCount(Timeline.INDEFINITE);

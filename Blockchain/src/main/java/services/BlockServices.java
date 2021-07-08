@@ -100,9 +100,9 @@ public class BlockServices {
 
         UTXO output = new UTXO(1_000_000, pubKey);
 
-        Transaction transaction = new Transaction(new ArrayList<>(), List.of(output));
+        Transaction transaction = new Transaction(new ArrayList<>(), new ArrayList<>(List.of(output)));
 
-        Block b = new Block(data, new MerkelTree(List.of(transaction)));
+        Block b = new Block(data, new MerkelTree(new ArrayList<>(List.of(transaction))));
         if (updateMongo) handler.saveBlock(b);
         if (updateRocks) rocksHandler.update(b);
         return b;

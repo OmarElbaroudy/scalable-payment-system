@@ -219,4 +219,8 @@ public class SegmentationServices {
         }
         segment();
     }
+
+    public boolean isMining(){
+        return mining;
+    }
 }

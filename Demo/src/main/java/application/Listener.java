@@ -40,6 +40,8 @@ public class Listener {
 
     private static void initRabbit() throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
+
+        factory.setUri(System.getenv("RABBIT_CONNECTION_URL"));
         Connection connection = factory.newConnection();
         channel = connection.createChannel();
 

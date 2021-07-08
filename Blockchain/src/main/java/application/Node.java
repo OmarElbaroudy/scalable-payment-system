@@ -39,6 +39,8 @@ public class Node {
         MongoHandler mongoHandler = new MongoHandler(nodeId);
 
         ConnectionFactory factory = new ConnectionFactory();
+
+        factory.setUri(System.getenv("RABBIT_CONNECTION_URL"));
         Connection connection = factory.newConnection();
         channel = connection.createChannel();
 

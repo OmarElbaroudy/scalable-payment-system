@@ -13,6 +13,7 @@ import persistence.models.UTXO;
 import utilities.MerkelTree;
 import utilities.Sign;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,7 +35,7 @@ public class MongoTester {
     }
 
     Block createBlock() {
-        List<Transaction> transactions = List.of(createTransaction());
+        List<Transaction> transactions = new ArrayList<>(List.of(createTransaction()));
         MetaData data = new MetaData(1, "test", 1234, 10);
         block = new Block(data, new MerkelTree(transactions));
         return block;

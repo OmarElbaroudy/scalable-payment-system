@@ -10,6 +10,8 @@ import persistence.RocksHandler;
 import services.SegmentationServices;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class SignalingServer {
     private static final String QUEUE_NAME = "SIGNALING_SERVER";
@@ -19,11 +21,12 @@ public class SignalingServer {
     private static Connection connection;
     private static RocksHandler handler;
     private static SegmentationServices segServer;
+    private static Queue<byte[]> transactionTasks;
 
     public static void segment() throws Exception {
         System.out.println("started segmenting...");
         segServer = new SegmentationServices(handler, channel);
-
+        transactionTasks = new LinkedList<>();
         channel.basicConsume(QUEUE_NAME, false, "SIGNALING_SERVER",
                 new DefaultConsumer(channel) {
                     @Override
@@ -39,7 +42,15 @@ public class SignalingServer {
                         String task = new String(ls.getBytes());
 
                         try {
-                            segServer.exec(task, body);
+                            if (segServer.isMining() && task.equals("createTransaction")) {
+                                transactionTasks.add(body);
+                            } else {
+                                segServer.exec(task, body);
+
+                                while (!segServer.isMining() && !transactionTasks.isEmpty()) {
+                                    segServer.exec("createTransaction", transactionTasks.poll());
+                                }
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -74,6 +85,8 @@ public class SignalingServer {
 
     public static void initRabbit() throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
+
+        factory.setUri(System.getenv("RABBIT_CONNECTION_URL"));
         connection = factory.newConnection();
         channel = connection.createChannel();
 

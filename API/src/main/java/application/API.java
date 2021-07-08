@@ -17,7 +17,6 @@ import persistence.MongoHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +33,8 @@ public class API {
 
     public static void initRabbit() throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
+
+        factory.setUri(System.getenv("RABBIT_CONNECTION_URL"));
         connection = factory.newConnection();
         channel = connection.createChannel();
 
