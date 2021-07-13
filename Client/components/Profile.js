@@ -100,6 +100,13 @@ export default function Profile({navigation}) {
     }
     const handleTransferTransaction = async (receiver, amount) => {
         try {
+            setShowAlert(false);
+            if (receiver===userName){
+                setVariant("danger");
+                setTransferStatus("Transfer Failed! You cannot transfer to yourself");
+                setShowAlert(true);
+                return;
+            }
             const userId = await getUserId();
             const data = await fetcher.transfer(userId, receiver, amount);
             if (data.message === "transaction created!") {
@@ -224,7 +231,7 @@ export default function Profile({navigation}) {
                                 Buy Now
                             </Button>
                             <Alert show={showAlert} variant="success">
-                                <Alert.Heading> Transaction done! </Alert.Heading>
+                                <Alert.Heading> Transaction in process! <br/> Amount will be deducted from your visa credit. </Alert.Heading>
                             </Alert>
                         </Form></Modal.Body>
                         <Modal.Footer>
@@ -250,7 +257,7 @@ export default function Profile({navigation}) {
                                 Sell Now
                             </Button>
                             <Alert show={showAlert} variant="success">
-                                <Alert.Heading> Sold! </Alert.Heading>
+                                <Alert.Heading> Transaction in process! <br/> Credited to your visa. </Alert.Heading>
                             </Alert>
                         </Form></Modal.Body>
                         <Modal.Footer>
