@@ -25,19 +25,28 @@ The server providing these services to the end-user is not in control of the blo
 
 A signaling server works as a controller and organizer of the whole system to allow synchronization of mining phases and consistency within all nodes.
 
-The signaling server is not a node in the blockchain network and merely signals the committees to ensure synchronization and epoch segmentation
+The signaling server is not a node in the blockchain network and merely signals the committees to ensure synchronization and epoch segmentation.
 
 All servers in the system send messages of their current tasks to a demo app which presents how the system is functioning.
 
-The demo app also plots graphs and charts representing the load on each node and committee as well as give stats about each service
+The demo app also plots graphs and charts representing the load on each node and committee as well as give stats about each service.
 
-
+Front-end is written in react-native for cross-platform support.
 
 
 Message Brokers, Caching, Multithreading, Cryptography and decentralization are used to achieve scalability.
 Nodes are loosely coupled and independent to achieve fault tolerance.
 ![image](![system architecture](https://user-images.githubusercontent.com/47888993/125516986-00deff73-8ea9-482e-b21e-311e0e160373.png)
 )
+
+1. Demo App connected with a message broker to all servers and nodes
+2. Signaling Server responsible for epoch segmentation and synchronization
+3. API server connected to signaling server with a message broker
+4. Node in a committee
+5. Message broker
+6. client laptop interacting with the API server
+7. Committee consisting of 2 nodes
+8. mobile app interacting with the API server
 
 
 ### Authors
