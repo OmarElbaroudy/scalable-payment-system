@@ -422,7 +422,6 @@ public class StatsContainer {
                         amount + " @ " + getTime());
                 text.setFill(Color.CHARTREUSE);
                 LoggerController.log(text, "API");
-                buyCnt++;
                 sellCnt++;
                 break;
             }
@@ -435,9 +434,7 @@ public class StatsContainer {
                         amount + " to " + to + " @ " + getTime());
                 text.setFill(Color.DARKGOLDENROD);
                 LoggerController.log(text, "API");
-                buyCnt++;
                 transferCnt++;
-
             }
         }
     }

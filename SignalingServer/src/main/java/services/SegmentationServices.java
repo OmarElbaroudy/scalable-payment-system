@@ -18,7 +18,7 @@ public class SegmentationServices {
     private int numberOfCommittees;
     private int transactionNumber = 0;
     private boolean mining = false, initialized = false;
-    private int curCommittee = 0;
+    private int curTransactionCommittee = 0, curBalanceCommittee = 0;
 
     public SegmentationServices(RocksHandler handler, Channel channel) {
         this.handler = handler;
@@ -28,8 +28,8 @@ public class SegmentationServices {
     }
 
     private void createTransaction(byte[] body) throws Exception {
-        curCommittee = curCommittee % numberOfCommittees + 1;
-        int nodeId = (curCommittee - 1) * committeeSize + 1;
+        curTransactionCommittee = curTransactionCommittee % numberOfCommittees + 1;
+        int nodeId = (curTransactionCommittee - 1) * committeeSize + 1;
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("server", "signaling");
@@ -52,8 +52,8 @@ public class SegmentationServices {
     }
 
     private void getBalance(byte[] body) throws Exception {
-        curCommittee = curCommittee % numberOfCommittees + 1;
-        String nodeId = services.getRandomNodeId(String.valueOf(curCommittee));
+        curBalanceCommittee = curBalanceCommittee % numberOfCommittees + 1;
+        String nodeId = services.getRandomNodeId(String.valueOf(curBalanceCommittee));
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("server", "signaling");
@@ -120,6 +120,7 @@ public class SegmentationServices {
         int cnt = handler.getNumberOfNodes();
         if (cnt == Integer.parseInt(System.getenv("TOTAL_NUMBER_OF_NODES"))) {
             initialized = true;
+            Thread.sleep(5000);
             init();
         }
     }

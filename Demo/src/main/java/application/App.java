@@ -8,7 +8,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-//TODO add genesis process to logger
 
 public class App extends Application {
 

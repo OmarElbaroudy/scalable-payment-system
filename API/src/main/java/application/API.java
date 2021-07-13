@@ -17,16 +17,13 @@ import persistence.MongoHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 public class API {
-    private static final String exchangeName = "BLOCKCHAIN";
     private static final String queueName = "API";
-    private static HashMap<String, HttpServletResponse> mp;
-    private static HashMap<String, AsyncContext> asyncMp;
+    private static HashMap<String, Queue<HttpServletResponse>> mp;
+    private static HashMap<String, Queue<AsyncContext>> asyncMp;
     private static Channel channel;
     private static Connection connection;
     private static Server server;
@@ -57,8 +54,8 @@ public class API {
                         String key = new String(ls.getBytes());
 
                         try {
-                            HttpServletResponse resp = mp.get(key);
-                            AsyncContext async = asyncMp.get(key);
+                            HttpServletResponse resp = Objects.requireNonNull(mp.get(key).poll());
+                            AsyncContext async = Objects.requireNonNull(asyncMp.get(key).poll());
 
                             resp.setContentType("application/json");
                             resp.setStatus(HttpServletResponse.SC_OK);
@@ -70,11 +67,9 @@ public class API {
                             out.print(json);
                             async.complete();
 
-                            mp.remove(key);
-                            asyncMp.remove(key);
                         } catch (Exception e) {
                             e.printStackTrace();
-                            HttpServletResponse resp = mp.get(key);
+                            HttpServletResponse resp = Objects.requireNonNull(mp.get(key).poll());
                             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                         }
 
@@ -84,8 +79,14 @@ public class API {
     }
 
     public static void addResponse(String key, HttpServletResponse resp, AsyncContext async) {
-        mp.put(key, resp);
-        asyncMp.put(key, async);
+        Queue<HttpServletResponse> fst = mp.getOrDefault(key, new LinkedList<>());
+        Queue<AsyncContext> snd = asyncMp.getOrDefault(key, new LinkedList<>());
+
+        fst.add(resp);
+        snd.add(async);
+
+        mp.put(key, fst);
+        asyncMp.put(key, snd);
     }
 
     public static void main(String[] args) throws Exception {

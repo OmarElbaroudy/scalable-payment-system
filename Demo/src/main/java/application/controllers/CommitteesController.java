@@ -70,7 +70,7 @@ public class CommitteesController implements Initializable {
     private void updateValidateTransaction() {
         validateTransaction.getData().clear();
         validateTransactionX.setLabel("Committee number");
-        validateTransactionY.setLabel("Number of Validate Transaction Requests");
+        validateTransactionY.setLabel("Validate Transaction Requests");
 
         for (int cur : StatsContainer.mp.keySet()) {
             XYChart.Series<String, Number> series = new XYChart.Series<>();
@@ -92,7 +92,7 @@ public class CommitteesController implements Initializable {
     private void updateValidateBlock() {
         validateBlock.getData().clear();
         validateBlockX.setLabel("Committee number");
-        validateBlockY.setLabel("Number of Validate Block Requests");
+        validateBlockY.setLabel("Validate Block Requests");
 
         for (int cur : StatsContainer.mp.keySet()) {
             XYChart.Series<String, Number> series = new XYChart.Series<>();
@@ -115,7 +115,7 @@ public class CommitteesController implements Initializable {
     private void updateMine() {
         mine.getData().clear();
         mineX.setLabel("Committee number");
-        mineY.setLabel("Number of Mine Requests");
+        mineY.setLabel("Mine Requests");
 
         for (int cur : StatsContainer.mp.keySet()) {
             XYChart.Series<String, Number> series = new XYChart.Series<>();
@@ -128,7 +128,7 @@ public class CommitteesController implements Initializable {
     private void updateCreateTransaction() {
         createTransaction.getData().clear();
         createTransactionX.setLabel("Committee number");
-        createTransactionY.setLabel("Number of Create Transactions Requests");
+        createTransactionY.setLabel("Create Transactions Requests");
 
         for (int cur : StatsContainer.mp.keySet()) {
             XYChart.Series<String, Number> series = new XYChart.Series<>();
