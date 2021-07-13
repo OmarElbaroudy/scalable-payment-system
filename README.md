@@ -15,7 +15,7 @@ When a user buys a product from an e-commerce website, the system transfers mone
 
 ### Technical details
 
-To achieve scalability a sharding protocol was used where the network was divided into smaller committees each committee stores it's own part of the decentralized ledger and process a fraction of the incoming transactions.
+To achieve scalability a sharding protocol was used where the network was divided into smaller committees each committee stores its own part of the decentralized ledger and process a fraction of the incoming transactions.
 
 Cross-shard transactions are supported to verify transactions that should be validated by several committees.
 
@@ -23,8 +23,19 @@ A server interacting with the blockchain to provide some services such as genera
 
 The server providing these services to the end-user is not in control of the blockchain and is not a node in the network. It merely communicates with the blockchain to provide the user with several services to make it easier for user to interact with the blockchain.
 
-The server is also highly scalable so as not to be the bottleneck in the system.
+A signaling server works as a controller and organizer of the whole system to allow synchronization of mining phases and consistency within all nodes.
 
+The signaling server is not a node in the blockchain network and merely signals the committees to ensure synchronization and epoch segmentation
+
+All servers in the system send messages of their current tasks to a demo app which presents how the system is functioning.
+
+The demo app also plots graphs and charts representing the load on each node and committee as well as give stats about each service
+
+
+
+
+Message Brokers, Caching, Multithreading, Cryptography and decentralization are used to achieve scalability.
+Nodes are loosely coupled and independent to achieve fault tolerance.
 ![image](https://user-images.githubusercontent.com/47888993/116227264-3d272880-a754-11eb-9efa-4856ebdd53a7.png)
 
 
