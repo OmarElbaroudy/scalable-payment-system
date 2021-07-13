@@ -36,7 +36,8 @@ The demo app also plots graphs and charts representing the load on each node and
 
 Message Brokers, Caching, Multithreading, Cryptography and decentralization are used to achieve scalability.
 Nodes are loosely coupled and independent to achieve fault tolerance.
-![image](https://user-images.githubusercontent.com/47888993/116227264-3d272880-a754-11eb-9efa-4856ebdd53a7.png)
+![image](![system architecture](https://user-images.githubusercontent.com/47888993/125516986-00deff73-8ea9-482e-b21e-311e0e160373.png)
+)
 
 
 ### Authors
