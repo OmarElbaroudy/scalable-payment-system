@@ -1,13 +1,7 @@
-import React, {Component, useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
-import {
-    StyleSheet,
-    Text,
-    View,
-    Image,
-    TouchableOpacity
-} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
@@ -15,7 +9,6 @@ import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {fetcher} from "../API/Fetcher";
-import Home from "../components/Home";
 import Login from "../components/Login";
 
 
@@ -101,7 +94,7 @@ export default function Profile({navigation}) {
     const handleTransferTransaction = async (receiver, amount) => {
         try {
             setShowAlert(false);
-            if (receiver===userName){
+            if (receiver === userName) {
                 setVariant("danger");
                 setTransferStatus("Transfer Failed! You cannot transfer to yourself");
                 setShowAlert(true);
@@ -164,8 +157,8 @@ export default function Profile({navigation}) {
             <View style={styles.body}>
                 <View style={styles.bodyContent}>
                     <Text style={styles.name}>{userName}</Text>
-                    <Text style={styles.info}>some info about the user</Text>
-                    <Text style={styles.description}>we could use here some notes,advices or any quote...</Text>
+                    <Text style={styles.info}>VIP customer</Text>
+                    <Text style={styles.description}>Transfer Cryptocurrency Anywhere, Anytime</Text>
 
                     <TouchableOpacity variant="primary" onPress={() => handleBalance()} style={styles.buttonContainer}>
                         <Text>Show Balance</Text>
@@ -231,7 +224,8 @@ export default function Profile({navigation}) {
                                 Buy Now
                             </Button>
                             <Alert show={showAlert} variant="success">
-                                <Alert.Heading> Transaction in process! <br/> Amount will be deducted from your visa credit. </Alert.Heading>
+                                <Alert.Heading> Transaction in process! <br/> Amount will be deducted from your visa
+                                    credit. </Alert.Heading>
                             </Alert>
                         </Form></Modal.Body>
                         <Modal.Footer>

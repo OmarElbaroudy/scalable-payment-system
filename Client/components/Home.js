@@ -1,9 +1,7 @@
 import React, {useEffect} from "react";
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
-import Form from 'react-bootstrap/Form';
-import {FormControl} from "react-bootstrap";
-import {ImageBackground, StyleSheet, Text, View, TouchableOpacity} from "react-native";
+import {ImageBackground, StyleSheet, Text, TouchableOpacity} from "react-native";
 import image from '../images/slide-01.jpg';
 import Login from './Login';
 import About from "./About";
@@ -12,7 +10,7 @@ export default function Home({navigation}) {
     useEffect(() => {
         //window.location.reload(false);
     });
-    
+
     return (
         <>
             <Navbar bg="light" variant="light" style={{minWidth: 700}}>
