@@ -36,8 +36,7 @@ Front-end is written in react-native for cross-platform support.
 
 Message Brokers, Caching, Multithreading, Cryptography and decentralization are used to achieve scalability.
 Nodes are loosely coupled and independent to achieve fault tolerance.
-![image](![system architecture](https://user-images.githubusercontent.com/47888993/125516986-00deff73-8ea9-482e-b21e-311e0e160373.png)
-)
+![image](![system architecture](https://user-images.githubusercontent.com/47888993/129956279-1c90864e-8acf-4413-97cb-a3b39399ea94.png))
 
 1. Demo App connected with a message broker to all servers and nodes
 2. Signaling Server responsible for epoch segmentation and synchronization
